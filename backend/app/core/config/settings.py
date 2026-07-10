@@ -44,5 +44,10 @@ class Settings(BaseSettings):
     EMBEDDING_PROVIDER: str = "sentence-transformers/all-MiniLM-L6-v2"
     EMBEDDING_CACHE_ENABLED: bool = True
 
+    # Vector Storage Configurations
+    VECTOR_PROVIDER: str = "chroma"
+    CHROMA_DB_PATH: str = "./storage/chroma"
+    QDRANT_URL: str = "http://localhost:6333"
+
 
 settings = Settings()

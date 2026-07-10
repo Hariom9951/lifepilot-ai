@@ -18,6 +18,7 @@ from app.features.embeddings.api import router as embeddings_router
 from app.features.knowledge.api import documents_router, knowledge_router
 from app.features.memory.api import router as memory_router
 from app.features.users.api import router as user_router
+from app.features.vector.api import router as vector_router
 
 
 @asynccontextmanager
@@ -83,6 +84,7 @@ app.include_router(user_router, prefix="/api/v1")
 app.include_router(knowledge_router, prefix="/api/v1")
 app.include_router(documents_router, prefix="/api/v1")
 app.include_router(embeddings_router, prefix="/api/v1")
+app.include_router(vector_router, prefix="/api/v1")
 app.include_router(memory_router, prefix="/api/v1")
 
 
