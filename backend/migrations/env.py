@@ -11,6 +11,14 @@ from app.core.config.settings import settings
 from app.core.database.mixins import Base
 from app.features.auth.models import RefreshToken, Role, User  # noqa: F401
 from app.features.knowledge.models import Document  # noqa: F401
+from app.features.memory.models import (  # noqa: F401
+    ConversationMessage,
+    ConversationSession,
+    ConversationSummary,
+    MemoryCategory,
+    MemoryTag,
+    UserMemory,
+)
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

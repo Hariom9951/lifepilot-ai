@@ -15,6 +15,7 @@ from app.core.middleware.security import SecurityHeadersMiddleware
 from app.core.middleware.timing import RequestTimingMiddleware
 from app.features.auth.api import router as auth_router
 from app.features.knowledge.api import router as knowledge_router
+from app.features.memory.api import router as memory_router
 from app.features.users.api import router as user_router
 
 
@@ -79,6 +80,7 @@ app.include_router(health_router, prefix="/api/v1")
 app.include_router(auth_router, prefix="/api/v1")
 app.include_router(user_router, prefix="/api/v1")
 app.include_router(knowledge_router, prefix="/api/v1")
+app.include_router(memory_router, prefix="/api/v1")
 
 
 @app.get("/")
