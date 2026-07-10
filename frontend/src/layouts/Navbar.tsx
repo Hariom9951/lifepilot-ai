@@ -13,6 +13,7 @@ import {
   Settings,
   LogOut,
   LayoutDashboard,
+  BarChart2,
 } from "lucide-react";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import { useAuthStore } from "@/store/authStore";
@@ -77,6 +78,15 @@ export default function Navbar() {
             <Activity className="h-3.5 w-3.5" />
             Status
           </Link>
+          {isAuthenticated && (
+            <Link
+              href="/analytics"
+              className="hover:text-slate-800 dark:hover:text-slate-200 transition-colors flex items-center gap-1.5"
+            >
+              <BarChart2 className="h-3.5 w-3.5 text-violet-450" />
+              Analytics
+            </Link>
+          )}
           {isAuthenticated && (
             <Link
               href="/knowledge"
@@ -198,6 +208,13 @@ export default function Navbar() {
           </Link>
           {isAuthenticated ? (
             <>
+              <Link
+                href="/analytics"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
+              >
+                Analytics
+              </Link>
               <Link
                 href="/knowledge"
                 onClick={() => setMobileMenuOpen(false)}
