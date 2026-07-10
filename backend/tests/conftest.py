@@ -15,7 +15,6 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 import app.core.database.session as db_session_module
 from app.core.config.settings import settings
 from app.core.database.mixins import Base
-from app.core.database.session import get_db_session
 
 # Import all SQLAlchemy models to ensure Base.metadata registers them
 from app.features.analytics.models import (  # noqa: F401
@@ -139,25 +138,17 @@ async def db_session() -> AsyncGenerator[AsyncSession, None]:
     """
     Yields a transaction-scoped database session for unit tests.
     """
-    async with TestingSessionLocal() as session:
+    async with db_session_module.SessionLocal() as session:
         yield session
         await session.rollback()
 
 
 @pytest.fixture
-async def client(db_session: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
+async def client() -> AsyncGenerator[AsyncClient, None]:
     """
-    API client fixture overriding the database dependency with the test session.
+    API client fixture for integration testing.
     """
-
-    async def _override_get_db_session() -> AsyncGenerator[AsyncSession, None]:
-        yield db_session
-
-    app.dependency_overrides[get_db_session] = _override_get_db_session
-
     async with AsyncClient(
         transport=ASGITransport(app=app), base_url="https://test"
     ) as ac:
         yield ac
-
-    app.dependency_overrides.clear()

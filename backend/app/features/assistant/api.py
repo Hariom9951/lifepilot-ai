@@ -42,6 +42,7 @@ async def process_chat(
         message=payload.message,
         conversation_id=payload.conversation_id,
     )
+    await db.commit()
     return SuccessResponse(
         message="Assistant chat processed successfully.",
         data=response_data,
