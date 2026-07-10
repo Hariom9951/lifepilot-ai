@@ -4,24 +4,15 @@ import React from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
-export interface PageWrapperProps
-  extends Omit<
-    React.HTMLAttributes<HTMLDivElement>,
-    "onDrag" | "onDragStart" | "onDragEnd" | "onAnimationStart"
-  > {
+export interface PageWrapperProps extends Omit<
+  React.HTMLAttributes<HTMLDivElement>,
+  "onDrag" | "onDragStart" | "onDragEnd" | "onAnimationStart"
+> {
   animate?: boolean;
 }
 
-export function PageWrapper({
-  children,
-  className,
-  animate = true,
-  ...props
-}: PageWrapperProps) {
-  const baseClasses = cn(
-    "min-h-[80vh] flex flex-col justify-start w-full relative",
-    className
-  );
+export function PageWrapper({ children, className, animate = true, ...props }: PageWrapperProps) {
+  const baseClasses = cn("min-h-[80vh] flex flex-col justify-start w-full relative", className);
 
   if (animate) {
     return (

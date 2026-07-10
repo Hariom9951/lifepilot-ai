@@ -6,20 +6,14 @@ import { cn } from "@/lib/utils";
 import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 
 // 1. Reusable Card
-export interface CardProps
-  extends Omit<
-    React.HTMLAttributes<HTMLDivElement>,
-    "onDrag" | "onDragStart" | "onDragEnd" | "onAnimationStart"
-  > {
+export interface CardProps extends Omit<
+  React.HTMLAttributes<HTMLDivElement>,
+  "onDrag" | "onDragStart" | "onDragEnd" | "onAnimationStart"
+> {
   hoverEffect?: boolean;
 }
 
-export function Card({
-  children,
-  className,
-  hoverEffect = false,
-  ...props
-}: CardProps) {
+export function Card({ children, className, hoverEffect = false, ...props }: CardProps) {
   const baseClasses = cn(
     "rounded-2xl border border-slate-200/50 bg-white p-5 shadow-sm transition-colors dark:border-slate-800/40 dark:bg-slate-900/20 relative overflow-hidden",
     hoverEffect &&

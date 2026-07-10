@@ -3,11 +3,12 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Brain, Command, Menu, X, Activity, Settings, LogOut, LayoutDashboard, User } from "lucide-react";
+import { Brain, Command, Menu, X, Activity, Settings, LogOut, LayoutDashboard } from "lucide-react";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import { useAuthStore } from "@/store/authStore";
 import { apiClient } from "@/config/axios";
 import { useToast } from "@/components/ui/toast";
+import Image from "next/image";
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -18,7 +19,7 @@ export default function Navbar() {
   const handleLogout = async () => {
     try {
       await apiClient.post("/auth/logout");
-    } catch (e) {
+    } catch {
       // Fail silently
     }
     logout();
@@ -93,9 +94,19 @@ export default function Navbar() {
               <div className="flex items-center gap-3">
                 <div className="h-7 w-7 rounded-lg bg-gradient-to-br from-indigo-550 to-purple-600 flex items-center justify-center text-white text-[10px] font-black uppercase overflow-hidden">
                   {user.avatar_url ? (
-                    <img src={user.avatar_url} alt="Profile" className="h-full w-full object-cover" />
+                    <Image
+                      src={user.avatar_url}
+                      alt="Profile"
+                      width={28}
+                      height={28}
+                      unoptimized
+                      className="h-full w-full object-cover"
+                    />
                   ) : (
-                    user.full_name.split(" ").map((n) => n[0]).join("")
+                    user.full_name
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")
                   )}
                 </div>
                 <button

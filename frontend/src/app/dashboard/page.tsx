@@ -8,8 +8,9 @@ import Navbar from "@/layouts/Navbar";
 import LandingFooter from "@/features/landing/components/LandingFooter";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Activity, Shield, User as UserIcon, Calendar, Mail, Compass, Settings } from "lucide-react";
+import { Activity, Shield, Calendar, Mail, Compass, Settings } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function DashboardPage() {
   const { user } = useAuthStore();
@@ -31,7 +32,8 @@ export default function DashboardPage() {
               Cockpit Console
             </h1>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-              Welcome back, pilot. Overviewing active container metrics, database indexes, and user nodes.
+              Welcome back, pilot. Overviewing active container metrics, database indexes, and user
+              nodes.
             </p>
           </div>
           <Link
@@ -48,15 +50,21 @@ export default function DashboardPage() {
           {/* User Profile Card */}
           <Card className="p-6 md:col-span-2 space-y-6">
             <div className="flex items-center gap-4 pb-4 border-b border-slate-100 dark:border-slate-900">
-              <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-650 flex items-center justify-center text-white font-extrabold text-xl shadow-lg shadow-indigo-500/10 select-none">
+              <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-650 flex items-center justify-center text-white font-extrabold text-xl shadow-lg shadow-indigo-500/10 select-none overflow-hidden">
                 {user.avatar_url ? (
-                  <img
+                  <Image
                     src={user.avatar_url}
                     alt={user.full_name}
+                    width={56}
+                    height={56}
+                    unoptimized
                     className="h-full w-full object-cover rounded-2xl"
                   />
                 ) : (
-                  user.full_name.split(" ").map((n) => n[0]).join("")
+                  user.full_name
+                    .split(" ")
+                    .map((n) => n[0])
+                    .join("")
                 )}
               </div>
               <div>
@@ -92,7 +100,10 @@ export default function DashboardPage() {
                     Security Authorization
                   </h4>
                   <p className="font-semibold text-slate-750 dark:text-slate-205 flex items-center gap-1.5">
-                    Role: <span className="font-mono text-[10px] bg-slate-150 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-1.5 py-0.5 rounded-md font-bold">{user.role.name}</span>
+                    Role:{" "}
+                    <span className="font-mono text-[10px] bg-slate-150 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-1.5 py-0.5 rounded-md font-bold">
+                      {user.role.name}
+                    </span>
                   </p>
                 </div>
               </div>
@@ -154,7 +165,8 @@ export default function DashboardPage() {
                   Identity Container Clean
                 </h4>
                 <p className="text-[9px] text-slate-450 dark:text-slate-500 leading-relaxed">
-                  Authentication signatures are stored cryptographically and session refresh occurs silently.
+                  Authentication signatures are stored cryptographically and session refresh occurs
+                  silently.
                 </p>
               </div>
             </div>

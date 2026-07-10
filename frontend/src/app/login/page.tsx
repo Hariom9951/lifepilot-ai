@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Brain, Lock, Mail, User, Eye, EyeOff, Loader2 } from "lucide-react";
+import { Brain, Eye, EyeOff, Loader2 } from "lucide-react";
 
 import { useAuthStore } from "@/store/authStore";
 import { apiClient } from "@/config/axios";
@@ -52,13 +52,14 @@ export default function LoginPage() {
     try {
       const response = await apiClient.post("/auth/login", data);
       const { access_token, user } = response.data.data;
-      
+
       setSession(access_token, user);
       toast("Welcome back! Authentication successful.", "success");
-      
+
       router.push(redirectPath);
-    } catch (error: any) {
-      const msg = error.response?.data?.message || "Invalid credentials, please try again.";
+    } catch (error) {
+      const axiosError = error as { response?: { data?: { message?: string } } };
+      const msg = axiosError.response?.data?.message || "Invalid credentials, please try again.";
       toast(msg, "error");
     } finally {
       setSubmitting(false);
@@ -69,7 +70,7 @@ export default function LoginPage() {
     <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 font-sans flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       {/* Dynamic abstract grid background */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:14px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none" />
-      
+
       <Card className="max-w-md w-full p-8 relative border border-slate-200/50 bg-white/60 dark:border-slate-850 dark:bg-slate-900/40 backdrop-blur-xl shadow-2xl rounded-3xl">
         <div className="flex flex-col items-center mb-8">
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg shadow-indigo-500/20 mb-4 animate-pulse">

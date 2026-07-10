@@ -19,7 +19,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       accessToken: null,
       user: null,
       isAuthenticated: false,
@@ -52,7 +52,7 @@ export const useAuthStore = create<AuthState>()(
           );
           const { access_token, user } = response.data.data;
           set({ accessToken: access_token, user, isAuthenticated: true });
-        } catch (error) {
+        } catch {
           // If refresh fails, user is unauthenticated
           set({ accessToken: null, user: null, isAuthenticated: false });
         } finally {

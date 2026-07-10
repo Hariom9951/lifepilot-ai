@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { User as UserIcon, Bell, Globe, Cpu, Sun, Moon, Laptop, Link2 } from "lucide-react";
+import { User as UserIcon, Bell, Globe, Cpu, Sun, Moon, Laptop } from "lucide-react";
 import { useTheme } from "next-themes";
+import Image from "next/image";
 import { PageWrapper } from "@/layouts/PageWrapper";
 import { SectionContainer } from "@/layouts/SectionContainer";
 import Navbar from "@/layouts/Navbar";
@@ -20,26 +21,36 @@ export default function SettingsPage() {
   const { toast } = useToast();
   const { user, updateUser } = useAuthStore();
 
-  const [profile, setProfile] = useState({
-    name: "",
-    email: "",
-    avatar_url: "",
-    timezone: "UTC",
-    language: "en",
-  });
+  const [profile, setProfile] = useState(() => ({
+    name: user?.full_name || "",
+    email: user?.email || "",
+    avatar_url: user?.avatar_url || "",
+    timezone: user?.timezone || "UTC",
+    language: user?.language || "en",
+  }));
 
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (user) {
-      setProfile({
-        name: user.full_name,
-        email: user.email,
-        avatar_url: user.avatar_url || "",
-        timezone: user.timezone,
-        language: user.language,
-      });
-    }
+    if (!user) return;
+
+    let active = true;
+    const timer = setTimeout(() => {
+      if (active) {
+        setProfile({
+          name: user.full_name,
+          email: user.email,
+          avatar_url: user.avatar_url || "",
+          timezone: user.timezone,
+          language: user.language,
+        });
+      }
+    }, 0);
+
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
   }, [user]);
 
   const handleSave = async (e: React.FormEvent) => {
@@ -54,8 +65,9 @@ export default function SettingsPage() {
       });
       updateUser(response.data.data);
       toast("Settings changes saved successfully!", "success");
-    } catch (error: any) {
-      const msg = error.response?.data?.message || "Failed to update profile settings.";
+    } catch (error) {
+      const axiosError = error as { response?: { data?: { message?: string } } };
+      const msg = axiosError.response?.data?.message || "Failed to update profile settings.";
       toast(msg, "error");
     } finally {
       setSaving(false);
@@ -129,9 +141,21 @@ export default function SettingsPage() {
                     <div className="flex items-center gap-4 border-b border-slate-100 dark:border-slate-900 pb-4 mb-4">
                       <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-605 flex items-center justify-center text-white font-bold text-lg overflow-hidden select-none">
                         {profile.avatar_url ? (
-                          <img src={profile.avatar_url} alt="Avatar" className="h-full w-full object-cover" />
+                          <Image
+                            src={profile.avatar_url}
+                            alt="Avatar"
+                            width={48}
+                            height={48}
+                            unoptimized
+                            className="h-full w-full object-cover"
+                          />
+                        ) : profile.name ? (
+                          profile.name
+                            .split(" ")
+                            .map((n) => n[0])
+                            .join("")
                         ) : (
-                          profile.name ? profile.name.split(" ").map((n) => n[0]).join("") : "U"
+                          "U"
                         )}
                       </div>
                       <div>

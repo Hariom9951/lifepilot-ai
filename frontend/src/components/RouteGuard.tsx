@@ -27,7 +27,7 @@ export default function RouteGuard({ children }: RouteGuardProps) {
   useEffect(() => {
     if (!isLoading) {
       const isPublicPath = PUBLIC_PATHS.some((path) => pathname === path || pathname === "/");
-      
+
       if (!isAuthenticated && !isPublicPath) {
         // Redirect to login if user is unauthenticated on private route
         router.push(`/login?redirect=${encodeURIComponent(pathname)}`);

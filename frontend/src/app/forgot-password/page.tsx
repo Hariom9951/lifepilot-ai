@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import Link from "next/link";
-import { Brain, Mail, Loader2, ArrowLeft, CheckCircle2 } from "lucide-react";
+import { Brain, Loader2, ArrowLeft, CheckCircle2 } from "lucide-react";
 
 import { useToast } from "@/components/ui/toast";
 import { Card } from "@/components/ui/card";
@@ -30,7 +30,7 @@ export default function ForgotPasswordPage() {
     resolver: zodResolver(forgotPasswordSchema),
   });
 
-  const onSubmit = async (data: ForgotPasswordFields) => {
+  const onSubmit = async () => {
     setSubmitting(true);
     // Simulate API delay
     await new Promise((resolve) => setTimeout(resolve, 1500));
@@ -42,7 +42,7 @@ export default function ForgotPasswordPage() {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 font-sans flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:14px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none" />
-      
+
       <Card className="max-w-md w-full p-8 relative border border-slate-200/50 bg-white/60 dark:border-slate-850 dark:bg-slate-900/40 backdrop-blur-xl shadow-2xl rounded-3xl animate-fade-in">
         <div className="flex flex-col items-center mb-6">
           <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg shadow-indigo-500/20 mb-4 animate-pulse">
@@ -66,7 +66,8 @@ export default function ForgotPasswordPage() {
                 Transmission Dispatched
               </h3>
               <p className="text-[11px] text-slate-500 dark:text-slate-400 max-w-xs mx-auto leading-relaxed">
-                We have sent instructions to your email address if a registered account exists. Please check your inbox and spam folders.
+                We have sent instructions to your email address if a registered account exists.
+                Please check your inbox and spam folders.
               </p>
             </div>
             <Link
@@ -80,7 +81,8 @@ export default function ForgotPasswordPage() {
         ) : (
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             <p className="text-[11px] text-slate-500 dark:text-slate-400 text-center leading-relaxed max-w-xs mx-auto">
-              Provide your email address below, and we will send you a secure link to reset your container password.
+              Provide your email address below, and we will send you a secure link to reset your
+              container password.
             </p>
 
             <div>
