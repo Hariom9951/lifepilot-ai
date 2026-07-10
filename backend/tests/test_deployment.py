@@ -12,19 +12,19 @@ async def test_health_check_endpoint(client: AsyncClient):
     """
     Verifies that the GET /health check endpoint resolves and responds with expected schema.
     """
-    mock_session = AsyncMock()
-    mock_session.execute.return_value = None
+    mock_session = MagicMock()
+    mock_session.execute = AsyncMock(return_value=None)
     mock_session_context = MagicMock()
-    mock_session_context.__aenter__.return_value = mock_session
-    mock_session_context.__aexit__.return_value = None
+    mock_session_context.__aenter__ = AsyncMock(return_value=mock_session)
+    mock_session_context.__aexit__ = AsyncMock(return_value=None)
 
     with (
         patch(
-            "app.core.database.redis.redis_manager.ping",
+            "app.main.redis_manager.ping",
             AsyncMock(return_value=True),
         ),
         patch(
-            "app.core.database.session.SessionLocal",
+            "app.main.SessionLocal",
             return_value=mock_session_context,
         ),
     ):
@@ -42,23 +42,23 @@ async def test_readiness_check_endpoint(client: AsyncClient):
     """
     Verifies that the GET /ready endpoint checks database, redis, embedding, and vector providers.
     """
-    mock_session = AsyncMock()
-    mock_session.execute.return_value = None
+    mock_session = MagicMock()
+    mock_session.execute = AsyncMock(return_value=None)
     mock_session_context = MagicMock()
-    mock_session_context.__aenter__.return_value = mock_session
-    mock_session_context.__aexit__.return_value = None
+    mock_session_context.__aenter__ = AsyncMock(return_value=mock_session)
+    mock_session_context.__aexit__ = AsyncMock(return_value=None)
 
     with (
         patch(
-            "app.core.database.redis.redis_manager.ping",
+            "app.main.redis_manager.ping",
             AsyncMock(return_value=True),
         ),
         patch(
-            "app.core.database.session.SessionLocal",
+            "app.main.SessionLocal",
             return_value=mock_session_context,
         ),
-        patch("app.features.embeddings.providers.get_active_provider") as mock_emb,
-        patch("app.features.vector.providers.get_vector_store_provider") as mock_vec,
+        patch("app.main.get_active_provider") as mock_emb,
+        patch("app.main.get_vector_store_provider") as mock_vec,
     ):
         # Mock active providers returning valid configs
         mock_provider = MagicMock()

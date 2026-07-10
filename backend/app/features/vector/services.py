@@ -1,6 +1,6 @@
 import logging
 import uuid
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -56,7 +56,7 @@ class HybridRetrievalService:
             "text": content,
             "source": source or "",
             "document_id": str(document_id) if document_id else "",
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(UTC).isoformat(),
         }
         vector_provider.add_chunks(
             user_id=user_id,
@@ -117,7 +117,7 @@ class HybridRetrievalService:
                 "text": c["content"],
                 "source": c["source"] or "",
                 "document_id": str(c["document_id"]) if c["document_id"] else "",
-                "created_at": datetime.utcnow().isoformat(),
+                "created_at": datetime.now(UTC).isoformat(),
             }
             payloads.append(meta)
 
@@ -206,7 +206,7 @@ class HybridRetrievalService:
                 "created_at": (
                     c.created_at.isoformat()
                     if c.created_at
-                    else datetime.utcnow().isoformat()
+                    else datetime.now(UTC).isoformat()
                 ),
             }
             metadatas.append(meta)

@@ -1,10 +1,14 @@
 import asyncio
+import shutil
+import tempfile
 from collections.abc import AsyncGenerator
 
 import pytest
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
+import app.core.database.session as db_session_module
+from app.core.config.settings import settings
 from app.core.database.mixins import Base
 from app.core.database.session import get_db_session
 from app.main import app
@@ -24,6 +28,28 @@ TestingSessionLocal = async_sessionmaker(
     class_=AsyncSession,
     expire_on_commit=False,
 )
+
+# Monkeypatch SessionLocal and engine globally for background task compatibility
+db_session_module.SessionLocal = TestingSessionLocal
+db_session_module.engine = test_engine
+
+# Setup isolated directories for vector persistent databases and uploads
+temp_vector_dir = tempfile.mkdtemp()
+settings.CHROMA_DB_PATH = temp_vector_dir
+settings.KNOWLEDGE_VECTOR_DIR = temp_vector_dir
+settings.KNOWLEDGE_UPLOAD_DIR = temp_vector_dir
+
+
+@pytest.fixture(scope="session", autouse=True)
+def cleanup_temp_directories(request):
+    """
+    Session-level cleanup of all temporary directories created for the tests run.
+    """
+
+    def remove_temp():
+        shutil.rmtree(temp_vector_dir, ignore_errors=True)
+
+    request.addfinalizer(remove_temp)
 
 
 @pytest.fixture
