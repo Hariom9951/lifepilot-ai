@@ -127,6 +127,11 @@ async def test_rag_retrieval_and_ingestion(db_session: AsyncSession, test_user: 
     )
     assert reindex_count > 0
 
+    # Cleanup vector index data for user
+    from app.features.rag.vector_store import RAGVectorStore
+
+    RAGVectorStore.clear(test_user.id)
+
 
 @pytest.mark.anyio
 async def test_rag_api_endpoints(
@@ -169,3 +174,8 @@ async def test_rag_api_endpoints(
     assert data["query"] == "AI ideas"
     assert len(data["matches"]) > 0
     assert "AI ideas" in data["matches"][0]["content"]
+
+    # Cleanup vector index data for user
+    from app.features.rag.vector_store import RAGVectorStore
+
+    RAGVectorStore.clear(test_user.id)

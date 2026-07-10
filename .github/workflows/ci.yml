@@ -109,6 +109,13 @@ jobs:
             sleep 2
           done
 
+      - name: Run Alembic Migrations
+        run: poetry run alembic upgrade head
+        working-directory: ./backend
+        env:
+          ENVIRONMENT: local
+          DATABASE_URL: postgresql+asyncpg://lifepilot_user:lifepilot_secure_password_replace_me@localhost:5432/lifepilot_db_test
+
       - name: Run pytest Suite
         run: poetry run pytest
         working-directory: ./backend

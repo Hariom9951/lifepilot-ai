@@ -1,25 +1,52 @@
 import asyncio
+import os
 import shutil
+import subprocess
+import sys
 import tempfile
 from collections.abc import AsyncGenerator
 
 import pytest
 from httpx import ASGITransport, AsyncClient
+from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
+# Import database session modules and settings
 import app.core.database.session as db_session_module
 from app.core.config.settings import settings
 from app.core.database.mixins import Base
 from app.core.database.session import get_db_session
+
+# Import all SQLAlchemy models to ensure Base.metadata registers them
+from app.features.analytics.models import (  # noqa: F401
+    AnalyticsBudget,
+    AnalyticsExpense,
+    AnalyticsGoal,
+    AnalyticsHabit,
+    AnalyticsTask,
+)
+from app.features.assistant.models import AssistantChat  # noqa: F401
+from app.features.auth.models import RefreshToken, Role, User  # noqa: F401
+from app.features.embeddings.models import EmbeddingCache  # noqa: F401
+from app.features.knowledge.models import Document  # noqa: F401
+from app.features.memory.models import (  # noqa: F401
+    ConversationMessage,
+    ConversationSession,
+    ConversationSummary,
+    MemoryCategory,
+    MemoryTag,
+    UserMemory,
+)
+from app.features.vector.models import VectorDocumentChunk  # noqa: F401
 from app.main import app
 
-# Test Database URL (In-memory SQLite)
-TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
+# Ensure test session uses the exact same DATABASE_URL as settings (no mismatches)
+TEST_DATABASE_URL = settings.DATABASE_URL
 
 # Create test engine
 test_engine = create_async_engine(
     TEST_DATABASE_URL,
-    connect_args={"check_same_thread": False},
+    poolclass=pool.NullPool if "sqlite" in TEST_DATABASE_URL else None,
 )
 
 # Test session factory
@@ -38,6 +65,19 @@ temp_vector_dir = tempfile.mkdtemp()
 settings.CHROMA_DB_PATH = temp_vector_dir
 settings.KNOWLEDGE_VECTOR_DIR = temp_vector_dir
 settings.KNOWLEDGE_UPLOAD_DIR = temp_vector_dir
+
+
+def run_alembic_migrations():
+    """
+    Run Alembic migrations programmatically against settings.DATABASE_URL.
+    """
+    cwd = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    # Run alembic upgrade head using subprocess to execute it in clean context
+    subprocess.run(
+        [sys.executable, "-m", "alembic", "upgrade", "head"],
+        check=True,
+        cwd=cwd,
+    )
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -63,16 +103,35 @@ def event_loop():
     loop.close()
 
 
-@pytest.fixture(autouse=True)
-async def init_test_db():
+@pytest.fixture(scope="session", autouse=True)
+def init_test_db_session():
     """
-    Initialize the database schemas before executing tests.
+    Initialize the database schema once at the start of the entire test session.
     """
-    async with test_engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    # 1. Clear database before running migrations if using SQLite
+    if "sqlite" in settings.DATABASE_URL:
+        db_path = settings.DATABASE_URL.replace("sqlite+aiosqlite:///", "")
+        if os.path.exists(db_path):
+            try:
+                os.remove(db_path)
+            except Exception:
+                pass
+
+    # 2. Run migrations
+    run_alembic_migrations()
     yield
+
+
+@pytest.fixture(autouse=True)
+async def clean_db_between_tests():
+    """
+    Clean up database data between tests to ensure test isolation.
+    """
+    yield
+    # Delete data from all tables, keeping table structures intact
     async with test_engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
+        for table in reversed(Base.metadata.sorted_tables):
+            await conn.execute(table.delete())
 
 
 @pytest.fixture
