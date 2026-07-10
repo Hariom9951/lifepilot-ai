@@ -98,6 +98,15 @@ export default function Navbar() {
           )}
           {isAuthenticated && (
             <Link
+              href="/assistant"
+              className="hover:text-slate-800 dark:hover:text-slate-200 transition-colors flex items-center gap-1.5"
+            >
+              <Brain className="h-3.5 w-3.5 text-indigo-450" />
+              AI Assistant
+            </Link>
+          )}
+          {isAuthenticated && (
+            <Link
               href="/settings"
               className="hover:text-slate-800 dark:hover:text-slate-200 transition-colors flex items-center gap-1.5"
             >
@@ -221,6 +230,13 @@ export default function Navbar() {
                 className="block text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
               >
                 Knowledge
+              </Link>
+              <Link
+                href="/assistant"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
+              >
+                AI Assistant
               </Link>
               <Link
                 href="/settings"

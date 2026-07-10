@@ -14,6 +14,7 @@ from app.core.middleware.request_id import RequestIdMiddleware
 from app.core.middleware.security import SecurityHeadersMiddleware
 from app.core.middleware.timing import RequestTimingMiddleware
 from app.features.analytics.api import router as analytics_router
+from app.features.assistant.api import router as assistant_router
 from app.features.auth.api import router as auth_router
 from app.features.embeddings.api import router as embeddings_router
 from app.features.knowledge.api import documents_router, knowledge_router
@@ -88,6 +89,7 @@ app.include_router(embeddings_router, prefix="/api/v1")
 app.include_router(vector_router, prefix="/api/v1")
 app.include_router(memory_router, prefix="/api/v1")
 app.include_router(analytics_router, prefix="/api/v1")
+app.include_router(assistant_router, prefix="/api/v1")
 
 
 @app.get("/")
