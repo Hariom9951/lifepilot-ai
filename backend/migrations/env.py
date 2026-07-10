@@ -16,10 +16,10 @@ from app.features.analytics.models import (  # noqa: F401
     AnalyticsHabit,
     AnalyticsTask,
 )
+from app.features.assistant.models import AssistantChat  # noqa: F401
 from app.features.auth.models import RefreshToken, Role, User  # noqa: F401
 from app.features.embeddings.models import EmbeddingCache  # noqa: F401
 from app.features.knowledge.models import Document  # noqa: F401
-from app.features.assistant.models import AssistantChat  # noqa: F401
 from app.features.memory.models import (  # noqa: F401
     ConversationMessage,
     ConversationSession,
