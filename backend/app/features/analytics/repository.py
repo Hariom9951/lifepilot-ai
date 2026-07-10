@@ -12,7 +12,7 @@ import uuid
 from datetime import UTC, date, datetime, timedelta
 from typing import Any
 
-from sqlalchemy import String, and_, case, cast, func, select
+from sqlalchemy import Date, String, and_, case, cast, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.features.analytics.models import (
@@ -182,16 +182,21 @@ class AnalyticsRepository:
     ) -> list[dict[str, Any]]:
         """Return monthly completed task counts for the last `months` months."""
         cutoff = (datetime.now(UTC) - timedelta(days=months * 30)).date()
+        bind = db.get_bind()
+        if bind.dialect.name == "postgresql":
+            month_expr = func.to_char(AnalyticsTask.completed_at, "YYYY-MM").label("month")
+        else:
+            month_expr = func.strftime("%Y-%m", AnalyticsTask.completed_at).label("month")
         stmt = (
             select(
-                func.strftime("%Y-%m", AnalyticsTask.completed_at).label("month"),
+                month_expr,
                 func.count().label("cnt"),
             )
             .where(
                 and_(
                     AnalyticsTask.user_id == user_id,
                     AnalyticsTask.status == TaskStatus.COMPLETED,
-                    func.date(AnalyticsTask.completed_at) >= cutoff,
+                    cast(AnalyticsTask.completed_at, Date) >= cutoff,
                 )
             )
             .group_by("month")
@@ -352,9 +357,14 @@ class AnalyticsRepository:
     ) -> list[dict[str, Any]]:
         """Return per-month spending for the last `months` months."""
         cutoff = (datetime.now(UTC) - timedelta(days=months * 30)).date()
+        bind = db.get_bind()
+        if bind.dialect.name == "postgresql":
+            month_expr = func.to_char(AnalyticsExpense.expense_date, "YYYY-MM").label("month")
+        else:
+            month_expr = func.strftime("%Y-%m", AnalyticsExpense.expense_date).label("month")
         stmt = (
             select(
-                func.strftime("%Y-%m", AnalyticsExpense.expense_date).label("month"),
+                month_expr,
                 func.sum(AnalyticsExpense.amount).label("total"),
             )
             .where(
