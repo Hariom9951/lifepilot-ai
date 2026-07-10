@@ -47,7 +47,11 @@ class Document(Base, UUIDMixin, TimestampMixin):
     mime_type: Mapped[str] = mapped_column(String(100), nullable=False)
     file_size: Mapped[int] = mapped_column(BigInteger, nullable=False)
     status: Mapped[DocumentStatus] = mapped_column(
-        Enum(DocumentStatus),
+        Enum(
+            DocumentStatus,
+            native_enum=True,
+            values_callable=lambda x: [e.value for e in x],
+        ),
         default=DocumentStatus.UPLOADED,
         server_default=DocumentStatus.UPLOADED.value,
         nullable=False,

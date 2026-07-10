@@ -73,7 +73,11 @@ class AnalyticsTask(Base, UUIDMixin, TimestampMixin):
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     status: Mapped[TaskStatus] = mapped_column(
-        Enum(TaskStatus, native_enum=True),
+        Enum(
+            TaskStatus,
+            native_enum=True,
+            values_callable=lambda x: [e.value for e in x],
+        ),
         default=TaskStatus.PENDING,
         server_default=TaskStatus.PENDING.value,
         nullable=False,
@@ -111,7 +115,11 @@ class AnalyticsHabit(Base, UUIDMixin, TimestampMixin):
     name: Mapped[str] = mapped_column(String(150), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     frequency: Mapped[HabitFrequency] = mapped_column(
-        Enum(HabitFrequency, native_enum=True),
+        Enum(
+            HabitFrequency,
+            native_enum=True,
+            values_callable=lambda x: [e.value for e in x],
+        ),
         default=HabitFrequency.DAILY,
         nullable=False,
     )
@@ -149,7 +157,11 @@ class AnalyticsGoal(Base, UUIDMixin, TimestampMixin):
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     status: Mapped[GoalStatus] = mapped_column(
-        Enum(GoalStatus, native_enum=True),
+        Enum(
+            GoalStatus,
+            native_enum=True,
+            values_callable=lambda x: [e.value for e in x],
+        ),
         default=GoalStatus.ACTIVE,
         server_default=GoalStatus.ACTIVE.value,
         nullable=False,
