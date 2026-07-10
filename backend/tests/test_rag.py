@@ -5,6 +5,7 @@ import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.database.session import SessionLocal
 from app.features.auth.models import Role, User
 from app.features.auth.repositories import RoleRepository, UserRepository
 from app.features.auth.security import create_access_token
@@ -16,32 +17,36 @@ from app.features.rag.services import RAGService
 
 
 @pytest.fixture(autouse=True)
-async def seed_role(db_session: AsyncSession):
-    role = await RoleRepository.get_by_name(db_session, "USER")
-    if not role:
-        role = await RoleRepository.create(
-            db_session, name="USER", description="Standard user"
-        )
-    await db_session.commit()
-    return role
+async def seed_role():
+    async with SessionLocal() as session:
+        role = await RoleRepository.get_by_name(session, "USER")
+        if not role:
+            role = await RoleRepository.create(
+                session, name="USER", description="Standard user"
+            )
+            await session.commit()
+        return role
 
 
 @pytest.fixture
-async def test_user(db_session: AsyncSession, seed_role: Role) -> User:
-    user = await UserRepository.get_by_username(db_session, "rag_tester")
-    if not user:
-        user = await UserRepository.create(
-            db_session,
-            {
-                "full_name": "RAG Tester",
-                "username": "rag_tester",
-                "email": "rag@example.com",
-                "hashed_password": "fakehash",
-                "role_id": seed_role.id,
-            },
-        )
-        await db_session.commit()
-    return user
+async def test_user(seed_role: Role) -> User:
+    async with SessionLocal() as session:
+        user = await UserRepository.get_by_username(session, "rag_tester")
+        if not user:
+            user = await UserRepository.create(
+                session,
+                {
+                    "full_name": "RAG Tester",
+                    "username": "rag_tester",
+                    "email": "rag@example.com",
+                    "hashed_password": "fakehash",
+                    "role_id": seed_role.id,
+                },
+            )
+            await session.commit()
+            # Refresh user to load relationships and attach to current session state
+            user = await UserRepository.get_by_id(session, user.id)
+        return user
 
 
 @pytest.mark.anyio

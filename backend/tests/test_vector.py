@@ -7,6 +7,7 @@ from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config.settings import settings
+from app.core.database.session import SessionLocal
 from app.features.auth.models import Role, User
 from app.features.auth.repositories import RoleRepository, UserRepository
 from app.features.auth.security import create_access_token
@@ -21,32 +22,36 @@ from app.features.vector.services import HybridRetrievalService
 
 
 @pytest.fixture(autouse=True)
-async def seed_user_role(db_session: AsyncSession):
-    user_role = await RoleRepository.get_by_name(db_session, "USER")
-    if not user_role:
-        user_role = await RoleRepository.create(
-            db_session, name="USER", description="Standard user"
-        )
-    await db_session.commit()
-    return user_role
+async def seed_user_role():
+    async with SessionLocal() as session:
+        user_role = await RoleRepository.get_by_name(session, "USER")
+        if not user_role:
+            user_role = await RoleRepository.create(
+                session, name="USER", description="Standard user"
+            )
+            await session.commit()
+        return user_role
 
 
 @pytest.fixture
-async def test_user(db_session: AsyncSession, seed_user_role: Role) -> User:
-    user = await UserRepository.get_by_username(db_session, "vector_tester")
-    if not user:
-        user = await UserRepository.create(
-            db_session,
-            {
-                "full_name": "Vector Tester",
-                "username": "vector_tester",
-                "email": "tester_vector@example.com",
-                "hashed_password": "fakehashedpwd",
-                "role_id": seed_user_role.id,
-            },
-        )
-        await db_session.commit()
-    return user
+async def test_user(seed_user_role: Role) -> User:
+    async with SessionLocal() as session:
+        user = await UserRepository.get_by_username(session, "vector_tester")
+        if not user:
+            user = await UserRepository.create(
+                session,
+                {
+                    "full_name": "Vector Tester",
+                    "username": "vector_tester",
+                    "email": "tester_vector@example.com",
+                    "hashed_password": "fakehashedpwd",
+                    "role_id": seed_user_role.id,
+                },
+            )
+            await session.commit()
+            # Refresh user to load relationships and attach to current session state
+            user = await UserRepository.get_by_id(session, user.id)
+        return user
 
 
 @pytest.fixture

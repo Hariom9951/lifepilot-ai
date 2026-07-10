@@ -45,7 +45,7 @@ TEST_DATABASE_URL = settings.DATABASE_URL
 # Create test engine
 test_engine = create_async_engine(
     TEST_DATABASE_URL,
-    poolclass=pool.NullPool if "sqlite" in TEST_DATABASE_URL else None,
+    poolclass=pool.NullPool,
 )
 
 # Test session factory
