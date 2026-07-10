@@ -1,0 +1,36 @@
+services:
+  # FastAPI Backend Service
+  - type: web
+    name: lifepilot-backend
+    env: python
+    buildCommand: poetry install --only main
+    startCommand: alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: DEBUG
+        value: "false"
+      - key: SECRET_KEY
+        sync: false
+      - key: DATABASE_URL
+        fromDatabase:
+          name: lifepilot-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: lifepilot-redis
+          property: connectionString
+      - key: EMBEDDING_PROVIDER
+        value: sentence-transformers/all-MiniLM-L6-v2
+      - key: VECTOR_PROVIDER
+        value: chroma
+
+databases:
+  - name: lifepilot-db
+    plan: free
+
+redis:
+  - name: lifepilot-redis
+    plan: free
+    ipAllowList: [] # allow internal connections only

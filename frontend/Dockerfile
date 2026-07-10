@@ -1,21 +1,20 @@
 # ==============================================================================
-# LifePilot AI - Frontend Dockerfile
+# LifePilot AI - Frontend Dockerfile (Optimized Standalone)
 # ==============================================================================
 
 # Stage 1: Install dependencies
 FROM node:20-slim AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm ci
+RUN --mount=type=cache,target=/root/.npm \
+    npm ci
 
-# Stage 2: Rebuild the source code only when needed
+# Stage 2: Build the source code
 FROM node:20-slim AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Next.js collects completely anonymous telemetry data about general usage.
-# We disable it during build and run.
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 
@@ -23,27 +22,29 @@ RUN npm run build
 FROM node:20-slim AS runner
 WORKDIR /app
 
-ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_ENV=production \
+    NEXT_TELEMETRY_DISABLED=1 \
+    PORT=3000 \
+    HOSTNAME="0.0.0.0"
 
-RUN groupadd --system --gid 1001 nodejs
-RUN useradd --system --uid 1001 nextjs
+RUN groupadd --system --gid 1001 nodejs && \
+    useradd --system --uid 1001 nextjs
 
-# Copy public assets and static resources
 COPY --from=builder /app/public ./public
 
 # Set the correct permission for prerender cache
-RUN mkdir .next
-RUN chown nextjs:nodejs .next
+RUN mkdir .next && chown nextjs:nodejs .next
 
-# Standalone builds copy only the files necessary for production
+# Copy built standalone folder
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 USER nextjs
 
 EXPOSE 3000
-ENV PORT=3000
-ENV HOSTNAME="0.0.0.0"
+
+# Leverage built-in Node client for a lightweight endpoint healthcheck
+HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
+    CMD node -e "const http = require('http'); http.get('http://localhost:3000', (res) => { if (res.statusCode === 200) process.exit(0); else process.exit(1); }).on('error', () => process.exit(1));" || exit 1
 
 CMD ["node", "server.js"]

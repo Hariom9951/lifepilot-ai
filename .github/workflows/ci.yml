@@ -1,0 +1,128 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+
+jobs:
+  frontend-verify:
+    name: Frontend Lint & Formatting
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: './frontend/package-lock.json'
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: ./frontend
+
+      - name: Run ESLint Check
+        run: npm run lint
+        working-directory: ./frontend
+
+  backend-verify:
+    name: Backend Lint & Pytest
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: '2.4.1'
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Cache Poetry virtualenv
+        uses: actions/cache@v4
+        id: cached-poetry-dependencies
+        with:
+          path: ./backend/.venv
+          key: ${{ runner.os }}-poetry-${{ hashFiles('./backend/poetry.lock') }}
+
+      - name: Install dependencies
+        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+        run: poetry install --no-interaction --no-root
+        working-directory: ./backend
+
+      - name: Check imports (isort)
+        run: poetry run isort . --check-only
+        working-directory: ./backend
+
+      - name: Check code style (Black)
+        run: poetry run black . --check
+        working-directory: ./backend
+
+      - name: Lint code (Ruff)
+        run: poetry run ruff check .
+        working-directory: ./backend
+
+      - name: Run pytest Suite
+        run: poetry run pytest
+        working-directory: ./backend
+        env:
+          ENVIRONMENT: local
+          EMBEDDING_PROVIDER: mock
+          VECTOR_PROVIDER: chroma
+
+  docker-verify:
+    name: Docker Build & Verification
+    runs-on: ubuntu-latest
+    needs: [frontend-verify, backend-verify]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Backend Production Image
+        run: docker build -t lifepilot-backend:test ./backend
+
+      - name: Build Frontend Production Image
+        run: docker build -t lifepilot-frontend:test ./frontend
+
+      - name: Verify Backend Container Spin-up & Health
+        run: |
+          # Start backing services (PostgreSQL & Redis)
+          docker run --name mock-postgres -e POSTGRES_PASSWORD=lifepilot_secure_password_replace_me -e POSTGRES_USER=lifepilot_user -e POSTGRES_DB=lifepilot_db -d -p 5432:5432 postgres:16-alpine
+          docker run --name mock-redis -d -p 6379:6379 redis:7-alpine redis-server --requirepass redis_secure_password_replace_me
+          
+          # Wait for PostgreSQL to load schemas
+          sleep 8
+          
+          # Spin up the backend container connected to Postgres & Redis
+          docker run -d --name test-backend-run \
+            -p 8000:8000 \
+            --link mock-postgres:postgres \
+            --link mock-redis:redis \
+            -e ENVIRONMENT=local \
+            -e DATABASE_URL=postgresql+asyncpg://lifepilot_user:lifepilot_secure_password_replace_me@mock-postgres:5432/lifepilot_db \
+            -e REDIS_URL=redis://:redis_secure_password_replace_me@mock-redis:6379/0 \
+            -e EMBEDDING_PROVIDER=mock \
+            lifepilot-backend:test
+            
+          # Wait for Uvicorn startup sequence
+          sleep 5
+          
+          # Check logs of backend container
+          docker logs test-backend-run
+          
+          # Execute endpoint request to verify health status
+          docker exec test-backend-run python3 -c "import urllib.request; res = urllib.request.urlopen('http://localhost:8000/health'); data = res.read(); print(data); exit(0 if res.status == 200 else 1)"
+          
+          # Cleanup containers
+          docker stop test-backend-run mock-postgres mock-redis
+          docker rm test-backend-run mock-postgres mock-redis
