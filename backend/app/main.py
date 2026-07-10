@@ -19,6 +19,7 @@ from app.features.auth.api import router as auth_router
 from app.features.embeddings.api import router as embeddings_router
 from app.features.knowledge.api import documents_router, knowledge_router
 from app.features.memory.api import router as memory_router
+from app.features.rag.api import router as rag_router
 from app.features.users.api import router as user_router
 from app.features.vector.api import router as vector_router
 
@@ -90,6 +91,7 @@ app.include_router(vector_router, prefix="/api/v1")
 app.include_router(memory_router, prefix="/api/v1")
 app.include_router(analytics_router, prefix="/api/v1")
 app.include_router(assistant_router, prefix="/api/v1")
+app.include_router(rag_router, prefix="/api/v1")
 
 
 @app.get("/")

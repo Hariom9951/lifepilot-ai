@@ -65,8 +65,12 @@ def auth_headers(test_user: User) -> dict[str, str]:
 @pytest.fixture(autouse=True)
 def mock_embedding_providers():
     """Patches settings to always use mock embedding provider for tests."""
+    from app.features.embeddings.providers import set_active_provider
+
+    set_active_provider(None)
     with patch.object(settings, "EMBEDDING_PROVIDER", "mock"):
         yield
+    set_active_provider(None)
 
 
 # =============================================================================
