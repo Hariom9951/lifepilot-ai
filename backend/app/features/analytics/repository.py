@@ -184,9 +184,13 @@ class AnalyticsRepository:
         cutoff = (datetime.now(UTC) - timedelta(days=months * 30)).date()
         bind = db.get_bind()
         if bind.dialect.name == "postgresql":
-            month_expr = func.to_char(AnalyticsTask.completed_at, "YYYY-MM").label("month")
+            month_expr = func.to_char(AnalyticsTask.completed_at, "YYYY-MM").label(
+                "month"
+            )
         else:
-            month_expr = func.strftime("%Y-%m", AnalyticsTask.completed_at).label("month")
+            month_expr = func.strftime("%Y-%m", AnalyticsTask.completed_at).label(
+                "month"
+            )
         stmt = (
             select(
                 month_expr,
@@ -359,9 +363,13 @@ class AnalyticsRepository:
         cutoff = (datetime.now(UTC) - timedelta(days=months * 30)).date()
         bind = db.get_bind()
         if bind.dialect.name == "postgresql":
-            month_expr = func.to_char(AnalyticsExpense.expense_date, "YYYY-MM").label("month")
+            month_expr = func.to_char(AnalyticsExpense.expense_date, "YYYY-MM").label(
+                "month"
+            )
         else:
-            month_expr = func.strftime("%Y-%m", AnalyticsExpense.expense_date).label("month")
+            month_expr = func.strftime("%Y-%m", AnalyticsExpense.expense_date).label(
+                "month"
+            )
         stmt = (
             select(
                 month_expr,
