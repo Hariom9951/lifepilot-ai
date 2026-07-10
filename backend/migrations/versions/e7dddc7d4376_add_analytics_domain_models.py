@@ -84,7 +84,7 @@ def upgrade() -> None:
         sa.Column("description", sa.Text(), nullable=True),
         sa.Column(
             "status",
-            sa.Enum("ACTIVE", "COMPLETED", "PAUSED", "ABANDONED", name="goalstatus"),
+            sa.Enum("active", "completed", "paused", "abandoned", name="goalstatus"),
             server_default="active",
             nullable=False,
         ),

@@ -149,7 +149,7 @@ class AnalyticsGoal(Base, UUIDMixin, TimestampMixin):
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     status: Mapped[GoalStatus] = mapped_column(
-        Enum(GoalStatus),
+        Enum(GoalStatus, native_enum=True),
         default=GoalStatus.ACTIVE,
         server_default=GoalStatus.ACTIVE.value,
         nullable=False,
