@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { User, Bell, Globe, Cpu, Sun, Moon, Laptop } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { User as UserIcon, Bell, Globe, Cpu, Sun, Moon, Laptop, Link2 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { PageWrapper } from "@/layouts/PageWrapper";
 import { SectionContainer } from "@/layouts/SectionContainer";
@@ -12,19 +12,54 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/toast";
+import { useAuthStore } from "@/store/authStore";
+import { apiClient } from "@/config/axios";
 
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme();
   const { toast } = useToast();
+  const { user, updateUser } = useAuthStore();
 
   const [profile, setProfile] = useState({
-    name: "Alex Mercer",
-    email: "alex@lifepilot.ai",
+    name: "",
+    email: "",
+    avatar_url: "",
+    timezone: "UTC",
+    language: "en",
   });
 
-  const handleSave = (e: React.FormEvent) => {
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (user) {
+      setProfile({
+        name: user.full_name,
+        email: user.email,
+        avatar_url: user.avatar_url || "",
+        timezone: user.timezone,
+        language: user.language,
+      });
+    }
+  }, [user]);
+
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast("Settings changes saved successfully!", "success");
+    setSaving(true);
+    try {
+      const response = await apiClient.patch("/users/profile", {
+        full_name: profile.name,
+        avatar_url: profile.avatar_url || null,
+        timezone: profile.timezone,
+        language: profile.language,
+      });
+      updateUser(response.data.data);
+      toast("Settings changes saved successfully!", "success");
+    } catch (error: any) {
+      const msg = error.response?.data?.message || "Failed to update profile settings.";
+      toast(msg, "error");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -51,7 +86,7 @@ export default function SettingsPage() {
                   value="profile"
                   className="w-full text-left justify-start md:py-2.5 px-3 border border-transparent aria-selected:bg-indigo-500/10 aria-selected:text-indigo-650 dark:aria-selected:bg-indigo-500/15 dark:aria-selected:text-indigo-400"
                 >
-                  <User className="h-4 w-4 mr-2 inline" />
+                  <UserIcon className="h-4 w-4 mr-2 inline" />
                   Profile
                 </TabsTrigger>
                 <TabsTrigger
@@ -92,15 +127,19 @@ export default function SettingsPage() {
                 <Card className="p-6">
                   <form onSubmit={handleSave} className="space-y-6">
                     <div className="flex items-center gap-4 border-b border-slate-100 dark:border-slate-900 pb-4 mb-4">
-                      <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-605 flex items-center justify-center text-white font-bold text-lg select-none">
-                        AM
+                      <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-605 flex items-center justify-center text-white font-bold text-lg overflow-hidden select-none">
+                        {profile.avatar_url ? (
+                          <img src={profile.avatar_url} alt="Avatar" className="h-full w-full object-cover" />
+                        ) : (
+                          profile.name ? profile.name.split(" ").map((n) => n[0]).join("") : "U"
+                        )}
                       </div>
                       <div>
                         <h3 className="text-xs font-black text-slate-800 dark:text-slate-200">
                           Profile Information
                         </h3>
                         <p className="text-[10px] text-slate-450 dark:text-slate-500">
-                          Enter your details below to update your offline personal profile.
+                          Enter your details below to update your account identity profiles.
                         </p>
                       </div>
                     </div>
@@ -116,16 +155,42 @@ export default function SettingsPage() {
                         label="Email Address"
                         type="email"
                         value={profile.email}
-                        onChange={(e) => setProfile({ ...profile, email: e.target.value })}
+                        disabled
                         required
                       />
+                      <Input
+                        label="Avatar Image URL"
+                        type="text"
+                        value={profile.avatar_url}
+                        onChange={(e) => setProfile({ ...profile, avatar_url: e.target.value })}
+                        placeholder="https://example.com/avatar.jpg"
+                      />
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-505 dark:text-slate-400 mb-1.5 flex items-center gap-1">
+                          Workspace Timezone
+                        </label>
+                        <select
+                          value={profile.timezone}
+                          onChange={(e) => setProfile({ ...profile, timezone: e.target.value })}
+                          className="w-full text-xs px-3 py-2 bg-white dark:bg-slate-900/50 border border-slate-250 dark:border-slate-800 rounded-lg text-slate-800 dark:text-slate-202 outline-none focus:border-indigo-500"
+                        >
+                          <option value="UTC">UTC (Greenwich)</option>
+                          <option value="America/New_York">EST (New York)</option>
+                          <option value="America/Los_Angeles">PST (Los Angeles)</option>
+                          <option value="Europe/London">GMT (London)</option>
+                          <option value="Europe/Paris">CET (Paris)</option>
+                          <option value="Asia/Tokyo">JST (Tokyo)</option>
+                          <option value="Asia/Kolkata">IST (Kolkata)</option>
+                        </select>
+                      </div>
                     </div>
 
                     <button
                       type="submit"
-                      className="px-4 py-2 rounded-lg text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-500/10 hover:shadow-indigo-500/20 cursor-pointer focus:outline-none"
+                      disabled={saving}
+                      className="px-4 py-2 rounded-lg text-xs font-bold bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-500/10 hover:shadow-indigo-500/20 cursor-pointer focus:outline-none disabled:opacity-50"
                     >
-                      Save Changes
+                      {saving ? "Saving Changes..." : "Save Changes"}
                     </button>
                   </form>
                 </Card>

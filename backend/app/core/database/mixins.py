@@ -58,3 +58,8 @@ class SoftDeleteMixin:
     def restore(self) -> None:
         self.is_deleted = False
         self.deleted_at = None
+
+
+# Import models here to register them with Base.metadata for Alembic autogenerate
+from app.features.auth.models import Role, User, RefreshToken  # noqa: F401
+

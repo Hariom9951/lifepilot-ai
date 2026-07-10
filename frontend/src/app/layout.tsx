@@ -4,6 +4,8 @@ import "../styles/globals.css";
 import { ThemeProvider } from "@/providers/ThemeProvider";
 import { ToastProvider } from "@/components/ui/toast";
 import CommandPalette from "@/components/CommandPalette";
+import QueryProvider from "@/providers/QueryProvider";
+import RouteGuard from "@/components/RouteGuard";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -72,8 +74,12 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <ToastProvider>
-            <CommandPalette />
-            {children}
+            <QueryProvider>
+              <RouteGuard>
+                <CommandPalette />
+                {children}
+              </RouteGuard>
+            </QueryProvider>
           </ToastProvider>
         </ThemeProvider>
       </body>
