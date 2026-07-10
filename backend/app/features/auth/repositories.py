@@ -28,13 +28,12 @@ class RoleRepository:
 
     @staticmethod
     async def create(
-        db: AsyncSession, name: str, description: str | None = None, permissions: Any | None = None
+        db: AsyncSession,
+        name: str,
+        description: str | None = None,
+        permissions: Any | None = None,
     ) -> Role:
-        role = Role(
-            name=name,
-            description=description,
-            permissions=permissions or []
-        )
+        role = Role(name=name, description=description, permissions=permissions or [])
         db.add(role)
         await db.flush()
         return role
@@ -59,7 +58,11 @@ class UserRepository:
 
     @staticmethod
     async def get_by_username(db: AsyncSession, username: str) -> User | None:
-        stmt = select(User).where(User.username == username).options(selectinload(User.role))
+        stmt = (
+            select(User)
+            .where(User.username == username)
+            .options(selectinload(User.role))
+        )
         result = await db.execute(stmt)
         return result.scalar_one_or_none()
 
@@ -99,9 +102,7 @@ class RefreshTokenRepository:
         db: AsyncSession, user_id: uuid.UUID, hashed_token: str, expires_at: datetime
     ) -> RefreshToken:
         token = RefreshToken(
-            user_id=user_id,
-            hashed_token=hashed_token,
-            expires_at=expires_at
+            user_id=user_id, hashed_token=hashed_token, expires_at=expires_at
         )
         db.add(token)
         await db.flush()
@@ -109,12 +110,18 @@ class RefreshTokenRepository:
 
     @staticmethod
     async def revoke(db: AsyncSession, token_id: uuid.UUID) -> None:
-        stmt = update(RefreshToken).where(RefreshToken.id == token_id).values(revoked=True)
+        stmt = (
+            update(RefreshToken).where(RefreshToken.id == token_id).values(revoked=True)
+        )
         await db.execute(stmt)
         await db.flush()
 
     @staticmethod
     async def revoke_all_for_user(db: AsyncSession, user_id: uuid.UUID) -> None:
-        stmt = update(RefreshToken).where(RefreshToken.user_id == user_id).values(revoked=True)
+        stmt = (
+            update(RefreshToken)
+            .where(RefreshToken.user_id == user_id)
+            .values(revoked=True)
+        )
         await db.execute(stmt)
         await db.flush()

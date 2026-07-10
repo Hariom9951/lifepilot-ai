@@ -1,5 +1,4 @@
 import uuid
-import os
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
@@ -36,7 +35,7 @@ def validate_password_strength(password: str) -> None:
         raise ValueError("Password must contain at least one lowercase letter.")
     if not any(c.isdigit() for c in password):
         raise ValueError("Password must contain at least one numeric digit.")
-    
+
     special_chars = "!@#$%^&*()-_=+[]{}|;:',.<>?/`~"
     if not any(c in special_chars for c in password):
         raise ValueError("Password must contain at least one special character.")
@@ -59,7 +58,9 @@ def verify_password(hashed_password: str, password: str) -> bool:
         return False
 
 
-def create_access_token(subject: str | Any, expires_delta: timedelta | None = None) -> str:
+def create_access_token(
+    subject: str | Any, expires_delta: timedelta | None = None
+) -> str:
     """
     Creates a JWT access token valid for 15 minutes by default.
     """
@@ -67,18 +68,20 @@ def create_access_token(subject: str | Any, expires_delta: timedelta | None = No
         expire = datetime.now(UTC) + expires_delta
     else:
         expire = datetime.now(UTC) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    
+
     to_encode = {
         "exp": expire,
         "sub": str(subject),
         "type": "access",
-        "jti": str(uuid.uuid4())
+        "jti": str(uuid.uuid4()),
     }
     encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
 
-def create_refresh_token(subject: str | Any, expires_delta: timedelta | None = None) -> str:
+def create_refresh_token(
+    subject: str | Any, expires_delta: timedelta | None = None
+) -> str:
     """
     Creates a JWT refresh token valid for 7 days by default.
     """
@@ -86,12 +89,12 @@ def create_refresh_token(subject: str | Any, expires_delta: timedelta | None = N
         expire = datetime.now(UTC) + expires_delta
     else:
         expire = datetime.now(UTC) + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
-    
+
     to_encode = {
         "exp": expire,
         "sub": str(subject),
         "type": "refresh",
-        "jti": str(uuid.uuid4())
+        "jti": str(uuid.uuid4()),
     }
     encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt

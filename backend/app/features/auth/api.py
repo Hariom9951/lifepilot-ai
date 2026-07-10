@@ -8,7 +8,13 @@ from app.common.responses.schemas import SuccessResponse
 from app.core.database.session import get_db_session
 from app.core.exceptions.custom import UnauthorizedError
 from app.features.auth.repositories import UserRepository
-from app.features.auth.schemas import MessageResponse, TokenResponse, UserLogin, UserRegister, UserResponse
+from app.features.auth.schemas import (
+    MessageResponse,
+    TokenResponse,
+    UserLogin,
+    UserRegister,
+    UserResponse,
+)
 from app.features.auth.security import decode_token
 from app.features.auth.services import AuthService
 
@@ -121,7 +127,9 @@ async def refresh(
     if not refresh_token:
         raise UnauthorizedError("Authentication refresh token is missing.")
 
-    new_access_token, new_refresh_token = await AuthService.refresh_tokens(db, refresh_token)
+    new_access_token, new_refresh_token = await AuthService.refresh_tokens(
+        db, refresh_token
+    )
 
     # Get user profile from the sub payload
     payload = decode_token(new_access_token, expected_type="access")

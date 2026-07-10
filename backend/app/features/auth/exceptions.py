@@ -22,7 +22,9 @@ class TokenExpiredError(AppException):
 
 
 class InvalidTokenError(AppException):
-    def __init__(self, message: str = "Authentication token is invalid or malformed.") -> None:
+    def __init__(
+        self, message: str = "Authentication token is invalid or malformed."
+    ) -> None:
         super().__init__(status_code=401, message=message)
 
 

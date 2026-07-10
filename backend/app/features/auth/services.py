@@ -1,7 +1,6 @@
 import hashlib
 import uuid
 from datetime import UTC, datetime, timedelta
-from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -11,11 +10,14 @@ from app.features.auth.exceptions import (
     DuplicateUsernameError,
     InvalidCredentialsError,
     InvalidTokenError,
-    RoleNotFoundError,
     TokenExpiredError,
 )
 from app.features.auth.models import User
-from app.features.auth.repositories import RefreshTokenRepository, RoleRepository, UserRepository
+from app.features.auth.repositories import (
+    RefreshTokenRepository,
+    RoleRepository,
+    UserRepository,
+)
 from app.features.auth.schemas import UserLogin, UserRegister
 from app.features.auth.security import (
     create_access_token,
@@ -45,7 +47,7 @@ class AuthService:
         try:
             validate_password_strength(register_data.password)
         except ValueError as e:
-            raise ValidationError(message=str(e))
+            raise ValidationError(message=str(e)) from e
 
         # Check unique constraint: Email
         existing_email = await UserRepository.get_by_email(db, register_data.email)
@@ -53,7 +55,9 @@ class AuthService:
             raise DuplicateEmailError()
 
         # Check unique constraint: Username
-        existing_username = await UserRepository.get_by_username(db, register_data.username)
+        existing_username = await UserRepository.get_by_username(
+            db, register_data.username
+        )
         if existing_username:
             raise DuplicateUsernameError()
 
@@ -83,12 +87,16 @@ class AuthService:
         return user
 
     @staticmethod
-    async def login_user(db: AsyncSession, login_data: UserLogin) -> tuple[User, str, str]:
+    async def login_user(
+        db: AsyncSession, login_data: UserLogin
+    ) -> tuple[User, str, str]:
         # Support login via email OR username
         if "@" in login_data.username_or_email:
             user = await UserRepository.get_by_email(db, login_data.username_or_email)
         else:
-            user = await UserRepository.get_by_username(db, login_data.username_or_email)
+            user = await UserRepository.get_by_username(
+                db, login_data.username_or_email
+            )
 
         if not user or not user.is_active:
             raise InvalidCredentialsError()
@@ -113,7 +121,9 @@ class AuthService:
         return user, access_token, refresh_token
 
     @staticmethod
-    async def refresh_tokens(db: AsyncSession, raw_refresh_token: str) -> tuple[str, str]:
+    async def refresh_tokens(
+        db: AsyncSession, raw_refresh_token: str
+    ) -> tuple[str, str]:
         # Validate and decode JWT Refresh Token
         payload = decode_token(raw_refresh_token, expected_type="refresh")
         user_uuid = uuid.UUID(payload["sub"])
@@ -145,7 +155,9 @@ class AuthService:
 
         new_hashed_rt = _hash_jwt_token(new_refresh_token)
         new_expires_at = datetime.now(UTC) + timedelta(days=7)
-        await RefreshTokenRepository.create(db, user_uuid, new_hashed_rt, new_expires_at)
+        await RefreshTokenRepository.create(
+            db, user_uuid, new_hashed_rt, new_expires_at
+        )
 
         await db.commit()
         return new_access_token, new_refresh_token

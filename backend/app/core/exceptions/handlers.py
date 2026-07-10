@@ -38,9 +38,7 @@ async def validation_exception_handler(
     assert isinstance(exc, RequestValidationError)
     logger.error(f"Validation error on {request.url.path}: {exc.errors()}")
     errors_list = [
-        ErrorDetails(
-            loc=list(map(str, err["loc"])), msg=err["msg"], type=err["type"]
-        )
+        ErrorDetails(loc=list(map(str, err["loc"])), msg=err["msg"], type=err["type"])
         for err in exc.errors()
     ]
     response_content = ErrorResponse(

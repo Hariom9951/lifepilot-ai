@@ -61,5 +61,4 @@ class SoftDeleteMixin:
 
 
 # Import models here to register them with Base.metadata for Alembic autogenerate
-from app.features.auth.models import Role, User, RefreshToken  # noqa: F401
-
+from app.features.auth.models import RefreshToken, Role, User  # noqa: E402, F401

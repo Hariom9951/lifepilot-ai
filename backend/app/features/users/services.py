@@ -11,10 +11,12 @@ class UserService:
     """
 
     @staticmethod
-    async def update_profile(db: AsyncSession, user: User, update_data: ProfileUpdate) -> User:
+    async def update_profile(
+        db: AsyncSession, user: User, update_data: ProfileUpdate
+    ) -> User:
         # Convert update schema to dictionary mapping
         data_to_update = update_data.model_dump(exclude_unset=True)
-        
+
         updated_user = await UserRepository.update(db, user, data_to_update)
         await db.commit()
         return updated_user

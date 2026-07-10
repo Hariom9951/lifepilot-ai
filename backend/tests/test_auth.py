@@ -1,9 +1,7 @@
 import pytest
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
 
-from app.features.auth.models import User, Role
 from app.features.auth.repositories import RoleRepository
 
 # Mark all test cases in this module as asynchronous
@@ -39,7 +37,7 @@ async def test_user_registration(client: AsyncClient) -> None:
         "email": "test@example.com",
         "password": "Password123!",
         "timezone": "UTC",
-        "language": "en"
+        "language": "en",
     }
     response = await client.post("/api/v1/auth/register", json=payload)
     assert response.status_code == 201
@@ -86,7 +84,10 @@ async def test_user_registration_weak_password(client: AsyncClient) -> None:
     }
     response = await client.post("/api/v1/auth/register", json=payload)
     assert response.status_code == 422
-    assert "Password must contain at least one uppercase letter" in response.json()["message"]
+    assert (
+        "Password must contain at least one uppercase letter"
+        in response.json()["message"]
+    )
 
 
 async def test_user_login_success(client: AsyncClient) -> None:
@@ -103,10 +104,7 @@ async def test_user_login_success(client: AsyncClient) -> None:
     await client.post("/api/v1/auth/register", json=payload)
 
     # 2. Login
-    login_payload = {
-        "username_or_email": "loginuser",
-        "password": "Password123!"
-    }
+    login_payload = {"username_or_email": "loginuser", "password": "Password123!"}
     response = await client.post("/api/v1/auth/login", json=login_payload)
     assert response.status_code == 200
     data = response.json()
@@ -130,7 +128,7 @@ async def test_user_logout(client: AsyncClient) -> None:
 
     login_payload = {
         "username_or_email": "logout@example.com",
-        "password": "Password123!"
+        "password": "Password123!",
     }
     login_resp = await client.post("/api/v1/auth/login", json=login_payload)
     assert login_resp.status_code == 200
@@ -153,14 +151,11 @@ async def test_token_refresh(client: AsyncClient) -> None:
     }
     await client.post("/api/v1/auth/register", json=payload)
 
-    login_payload = {
-        "username_or_email": "refreshuser",
-        "password": "Password123!"
-    }
+    login_payload = {"username_or_email": "refreshuser", "password": "Password123!"}
     # Log in to get set-cookie
     login_resp = await client.post("/api/v1/auth/login", json=login_payload)
     assert login_resp.status_code == 200
-    
+
     # Refresh by passing cookies directly on client instance
     client.cookies.update(login_resp.cookies)
     refresh_resp = await client.post("/api/v1/auth/refresh")
@@ -180,10 +175,7 @@ async def test_get_current_user_profile(client: AsyncClient) -> None:
     }
     await client.post("/api/v1/auth/register", json=payload)
 
-    login_payload = {
-        "username_or_email": "profileuser",
-        "password": "Password123!"
-    }
+    login_payload = {"username_or_email": "profileuser", "password": "Password123!"}
     login_resp = await client.post("/api/v1/auth/login", json=login_payload)
     token = login_resp.json()["data"]["access_token"]
 
@@ -206,10 +198,7 @@ async def test_update_profile(client: AsyncClient) -> None:
     }
     await client.post("/api/v1/auth/register", json=payload)
 
-    login_payload = {
-        "username_or_email": "updateuser",
-        "password": "Password123!"
-    }
+    login_payload = {"username_or_email": "updateuser", "password": "Password123!"}
     login_resp = await client.post("/api/v1/auth/login", json=login_payload)
     token = login_resp.json()["data"]["access_token"]
 
@@ -218,9 +207,11 @@ async def test_update_profile(client: AsyncClient) -> None:
     update_payload = {
         "full_name": "Updated Name",
         "timezone": "Europe/Paris",
-        "language": "fr"
+        "language": "fr",
     }
-    patch_resp = await client.patch("/api/v1/users/profile", json=update_payload, headers=headers)
+    patch_resp = await client.patch(
+        "/api/v1/users/profile", json=update_payload, headers=headers
+    )
     assert patch_resp.status_code == 200
     assert patch_resp.json()["data"]["full_name"] == "Updated Name"
     assert patch_resp.json()["data"]["timezone"] == "Europe/Paris"

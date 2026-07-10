@@ -5,7 +5,6 @@ from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
 
-
 EMAIL_REGEX = re.compile(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$")
 USERNAME_REGEX = re.compile(r"^[a-zA-Z0-9_-]+$")
 
@@ -16,9 +15,7 @@ class RoleResponse(BaseModel):
     description: str | None = None
     permissions: list[str] | dict[str, Any] = []
 
-    model_config = {
-        "from_attributes": True
-    }
+    model_config = {"from_attributes": True}
 
 
 class UserRegister(BaseModel):
@@ -42,7 +39,9 @@ class UserRegister(BaseModel):
     def validate_username(cls, v: str) -> str:
         v = v.strip()
         if not USERNAME_REGEX.match(v):
-            raise ValueError("Username can only contain alphanumeric characters, underscores, and hyphens.")
+            raise ValueError(
+                "Username can only contain alphanumeric characters, underscores, and hyphens."
+            )
         return v
 
 
@@ -66,9 +65,7 @@ class UserResponse(BaseModel):
     updated_at: datetime
     last_login: datetime | None = None
 
-    model_config = {
-        "from_attributes": True
-    }
+    model_config = {"from_attributes": True}
 
 
 class TokenResponse(BaseModel):

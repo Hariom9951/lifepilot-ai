@@ -24,22 +24,22 @@ async def get_current_user(
     """
     if not credentials:
         raise UnauthorizedError("Authentication credentials were not provided.")
-    
+
     token = credentials.credentials
     payload = decode_token(token, expected_type="access")
-    
+
     try:
         user_uuid = uuid.UUID(payload.get("sub"))
     except (ValueError, TypeError) as e:
         raise UnauthorizedError("Token contains an invalid user identifier.") from e
-        
+
     user = await UserRepository.get_by_id(db, user_uuid)
     if not user:
         raise UnauthorizedError("User session no longer exists.")
-        
+
     if not user.is_active:
         raise ForbiddenError("User account has been deactivated.")
-        
+
     return user
 
 
