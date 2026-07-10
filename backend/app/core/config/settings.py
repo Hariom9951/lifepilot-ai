@@ -32,5 +32,13 @@ class Settings(BaseSettings):
     )
     REDIS_URL: str = "redis://:redis_secure_password_replace_me@localhost:6379/0"
 
+    # Knowledge / RAG Configuration
+    KNOWLEDGE_UPLOAD_DIR: str = "./storage/uploads"
+    KNOWLEDGE_VECTOR_DIR: str = "./storage/faiss"
+    KNOWLEDGE_EMBEDDING_MODEL: str = "sentence-transformers/all-MiniLM-L6-v2"
+    KNOWLEDGE_CHUNK_SIZE: int = 512
+    KNOWLEDGE_CHUNK_OVERLAP: int = 64
+    KNOWLEDGE_MAX_FILE_SIZE_MB: int = 25
+
 
 settings = Settings()

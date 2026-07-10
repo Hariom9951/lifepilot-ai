@@ -9,6 +9,8 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 # Import our Pydantic settings and Database Base metadata
 from app.core.config.settings import settings
 from app.core.database.mixins import Base
+from app.features.auth.models import RefreshToken, Role, User  # noqa: F401
+from app.features.knowledge.models import Document  # noqa: F401
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

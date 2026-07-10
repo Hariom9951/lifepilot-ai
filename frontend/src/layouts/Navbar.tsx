@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Brain, Command, Menu, X, Activity, Settings, LogOut, LayoutDashboard } from "lucide-react";
+import { Brain, BookOpen, Command, Menu, X, Activity, Settings, LogOut, LayoutDashboard } from "lucide-react";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import { useAuthStore } from "@/store/authStore";
 import { apiClient } from "@/config/axios";
@@ -67,6 +67,15 @@ export default function Navbar() {
             <Activity className="h-3.5 w-3.5" />
             Status
           </Link>
+          {isAuthenticated && (
+            <Link
+              href="/knowledge"
+              className="hover:text-slate-800 dark:hover:text-slate-200 transition-colors flex items-center gap-1.5"
+            >
+              <BookOpen className="h-3.5 w-3.5 text-indigo-450" />
+              Knowledge
+            </Link>
+          )}
           {isAuthenticated && (
             <Link
               href="/settings"
@@ -179,6 +188,13 @@ export default function Navbar() {
           </Link>
           {isAuthenticated ? (
             <>
+              <Link
+                href="/knowledge"
+                onClick={() => setMobileMenuOpen(false)}
+                className="block text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100"
+              >
+                Knowledge
+              </Link>
               <Link
                 href="/settings"
                 onClick={() => setMobileMenuOpen(false)}
