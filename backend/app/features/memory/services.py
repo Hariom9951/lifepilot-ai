@@ -12,10 +12,7 @@ from sqlalchemy.orm import selectinload
 from app.core.config.settings import settings
 from app.core.database.redis import redis_manager
 from app.features.memory.embeddings import EmbeddingProvider, MockEmbeddingProvider
-from app.features.memory.exceptions import (
-    MemoryNotFoundError,
-    SessionNotFoundError,
-)
+from app.features.memory.exceptions import MemoryNotFoundError, SessionNotFoundError
 from app.features.memory.models import (
     ConversationMessage,
     ConversationSession,
