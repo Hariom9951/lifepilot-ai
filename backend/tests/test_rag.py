@@ -49,7 +49,7 @@ async def test_user(seed_role: Role) -> User:
         return user
 
 
-@pytest.mark.anyio
+@pytest.mark.asyncio
 async def test_rag_chunker():
     """Verify that document parser correctly chunks text and retains metadata."""
     text = (
@@ -70,7 +70,7 @@ async def test_rag_chunker():
     assert chunks[0]["metadata"]["category"] == "test"
 
 
-@pytest.mark.anyio
+@pytest.mark.asyncio
 async def test_rag_embedding_engine(db_session: AsyncSession):
     """Verify the central embedding engine integration returns active dimensions."""
     texts = ["hello world", "rag database"]
@@ -79,7 +79,7 @@ async def test_rag_embedding_engine(db_session: AsyncSession):
     assert len(embeddings[0]) == RAGEmbeddingEngine.get_dimension()
 
 
-@pytest.mark.anyio
+@pytest.mark.asyncio
 async def test_rag_reranker():
     """Verify the keyword-overlap local reranking logic scores matching documents higher."""
     query = "database system"
@@ -96,7 +96,7 @@ async def test_rag_reranker():
     assert reranked[0]["document"] == "doc2.txt"
 
 
-@pytest.mark.anyio
+@pytest.mark.asyncio
 async def test_rag_retrieval_and_ingestion(db_session: AsyncSession, test_user: User):
     """Verify user memories ingestion and retrieval pipelines."""
     # 1. Seed UserMemory
@@ -138,7 +138,7 @@ async def test_rag_retrieval_and_ingestion(db_session: AsyncSession, test_user: 
     RAGVectorStore.clear(test_user.id)
 
 
-@pytest.mark.anyio
+@pytest.mark.asyncio
 async def test_rag_api_endpoints(
     client: AsyncClient, db_session: AsyncSession, test_user: User
 ):

@@ -142,7 +142,21 @@ async def test_document_chunk_repository(db_session: AsyncSession, test_user: Us
 
 @pytest.mark.asyncio
 async def test_hybrid_search_orchestrator(db_session: AsyncSession, test_user: User):
+    from app.features.knowledge.models import Document, DocumentStatus
+
     doc_id = uuid.uuid4()
+    doc = Document(
+        id=doc_id,
+        user_id=test_user.id,
+        original_filename="quarterly_report.pdf",
+        storage_filename=str(uuid.uuid4()),
+        mime_type="application/pdf",
+        file_size=1024,
+        status=DocumentStatus.READY,
+    )
+    db_session.add(doc)
+    await db_session.commit()
+
     chunks = [
         {
             "id": str(uuid.uuid4()),
