@@ -120,16 +120,30 @@ class DocumentRepository:
         await db.flush()
 
     @staticmethod
-    async def mark_ready(db: AsyncSession, doc_id: uuid.UUID, chunk_count: int) -> None:
-        """Convenience method to set status to READY with chunk count."""
-        stmt = (
-            update(Document)
-            .where(Document.id == doc_id)
-            .values(
-                status=DocumentStatus.READY,
-                chunk_count=chunk_count,
-                processed_at=datetime.now(UTC),
-            )
-        )
+    async def mark_ready(
+        db: AsyncSession,
+        doc_id: uuid.UUID,
+        chunk_count: int,
+        metadata_json: dict | None = None,
+    ) -> None:
+        """Convenience method to set status to READY with chunk count and metadata."""
+        values = {
+            "status": DocumentStatus.READY,
+            "chunk_count": chunk_count,
+            "processed_at": datetime.now(UTC),
+        }
+        if metadata_json is not None:
+            values["metadata_json"] = metadata_json
+
+        stmt = update(Document).where(Document.id == doc_id).values(**values)
+        await db.execute(stmt)
+        await db.flush()
+
+    @staticmethod
+    async def update_document(
+        db: AsyncSession, doc_id: uuid.UUID, values: dict[str, Any]
+    ) -> None:
+        """Update arbitrary document columns."""
+        stmt = update(Document).where(Document.id == doc_id).values(**values)
         await db.execute(stmt)
         await db.flush()

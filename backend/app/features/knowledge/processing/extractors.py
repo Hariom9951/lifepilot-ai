@@ -5,6 +5,7 @@ Follows the Single Responsibility Principle — one class per concern.
 
 import logging
 from pathlib import Path
+from typing import Any
 
 logger = logging.getLogger("app.knowledge.extractor")
 
@@ -25,62 +26,82 @@ class TextExtractor:
     """
 
     def extract(self, file_path: Path, mime_type: str) -> str:
+        text, _ = self.extract_with_metadata(file_path, mime_type)
+        return text
+
+    def extract_with_metadata(
+        self, file_path: Path, mime_type: str
+    ) -> tuple[str, dict[str, Any]]:
         """
-        Extract and return raw text content from a file.
-
-        Args:
-            file_path: Absolute path to the stored file.
-            mime_type: MIME type string used to select the extractor strategy.
-
-        Returns:
-            Extracted plain text content.
-
-        Raises:
-            ValueError: If MIME type is not supported.
-            RuntimeError: If extraction fails.
+        Extract text and metadata (title, author, page count, word count, character count).
         """
         strategy = SUPPORTED_MIME_TYPES.get(mime_type)
         if strategy is None:
             raise ValueError(f"Unsupported MIME type for extraction: {mime_type}")
 
-        logger.info(f"Extracting text from {file_path.name} using strategy: {strategy}")
+        logger.info(
+            f"Extracting text/metadata from {file_path.name} using strategy: {strategy}"
+        )
 
         try:
             if strategy == "pdf":
-                return self._extract_pdf(file_path)
+                return self._extract_pdf_with_meta(file_path)
             elif strategy == "docx":
-                return self._extract_docx(file_path)
+                return self._extract_docx_with_meta(file_path)
             else:
-                return self._extract_text(file_path)
+                return self._extract_text_with_meta(file_path)
         except Exception as exc:
-            logger.exception(f"Text extraction failed for {file_path.name}: {exc}")
+            logger.exception(
+                f"Text/metadata extraction failed for {file_path.name}: {exc}"
+            )
             raise RuntimeError(f"Text extraction failed: {exc}") from exc
 
-    def _extract_pdf(self, file_path: Path) -> str:
-        """Extract text from a PDF file using pypdf."""
-        import pypdf  # Lazy import to avoid startup cost
+    def _extract_pdf_with_meta(self, file_path: Path) -> tuple[str, dict[str, Any]]:
+        import pypdf
 
-        text_parts: list[str] = []
+        text_parts = []
+        meta = {"page_count": 0, "title": "", "author": ""}
         with open(file_path, "rb") as f:
             reader = pypdf.PdfReader(f)
+            meta["page_count"] = len(reader.pages)
+            if reader.metadata:
+                meta["title"] = str(reader.metadata.get("/Title") or "")
+                meta["author"] = str(reader.metadata.get("/Author") or "")
             for page in reader.pages:
                 page_text = page.extract_text()
                 if page_text:
                     text_parts.append(page_text.strip())
 
-        return "\n\n".join(text_parts)
+        text = "\n\n".join(text_parts)
+        meta["word_count"] = len(text.split())
+        meta["character_count"] = len(text)
+        return text, meta
 
-    def _extract_docx(self, file_path: Path) -> str:
-        """Extract text from a DOCX file using python-docx."""
-        import docx  # Lazy import
+    def _extract_docx_with_meta(self, file_path: Path) -> tuple[str, dict[str, Any]]:
+        import docx
 
-        document = docx.Document(str(file_path))
-        paragraphs = [p.text.strip() for p in document.paragraphs if p.text.strip()]
-        return "\n\n".join(paragraphs)
+        doc = docx.Document(str(file_path))
+        paragraphs = [p.text.strip() for p in doc.paragraphs if p.text.strip()]
+        text = "\n\n".join(paragraphs)
+        meta = {
+            "page_count": max(1, len(paragraphs) // 15),
+            "title": str(doc.core_properties.title or ""),
+            "author": str(doc.core_properties.author or ""),
+            "word_count": len(text.split()),
+            "character_count": len(text),
+        }
+        return text, meta
 
-    def _extract_text(self, file_path: Path) -> str:
-        """Read plain text / Markdown files with UTF-8 encoding."""
-        return file_path.read_text(encoding="utf-8", errors="replace")
+    def _extract_text_with_meta(self, file_path: Path) -> tuple[str, dict[str, Any]]:
+        text = file_path.read_text(encoding="utf-8", errors="replace")
+        meta = {
+            "page_count": 1,
+            "title": file_path.stem,
+            "author": "Unknown",
+            "word_count": len(text.split()),
+            "character_count": len(text),
+        }
+        return text, meta
 
 
 # Module-level singleton

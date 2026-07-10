@@ -20,6 +20,9 @@ class DocumentResponse(BaseModel):
     chunk_count: int
     error_message: str | None = None
     processed_at: datetime | None = None
+    retry_count: int
+    retries_exhausted: bool
+    metadata_json: dict | None = None
     created_at: datetime
     updated_at: datetime
 
@@ -48,3 +51,22 @@ class DocumentListResponse(BaseModel):
 
     total: int = Field(default=0)
     items: list[DocumentResponse] = Field(default_factory=list)
+
+
+class DocumentSearchRequest(BaseModel):
+    query: str = Field(..., min_length=1)
+    limit: int = Field(5, ge=1, le=50)
+    similarity_threshold: float = Field(0.5, ge=0.0, le=1.0)
+    category: str | None = None
+    metadata_filter: dict | None = None
+
+
+class DocumentSearchItem(BaseModel):
+    document_id: uuid.UUID
+    chunk_text: str
+    score: float
+    metadata: dict
+
+
+class DocumentSearchResponse(BaseModel):
+    results: list[DocumentSearchItem]

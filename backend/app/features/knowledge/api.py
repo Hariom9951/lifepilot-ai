@@ -1,7 +1,3 @@
-"""
-Knowledge API router — 4 secured endpoints for document management.
-"""
-
 import uuid
 from typing import Annotated
 
@@ -16,18 +12,33 @@ from app.features.auth.schemas import MessageResponse
 from app.features.knowledge.schemas import (
     DocumentListResponse,
     DocumentResponse,
+    DocumentSearchRequest,
+    DocumentSearchResponse,
     DocumentStatusResponse,
 )
 from app.features.knowledge.services import KnowledgeService
 
-router = APIRouter(prefix="/knowledge", tags=["Knowledge"])
+# Define routers for both prefixes
+documents_router = APIRouter(prefix="/documents", tags=["Documents"])
+knowledge_router = APIRouter(prefix="/knowledge", tags=["Knowledge"])
 
 
-@router.post(
+# -------------------------------------------------------------------------
+# Upload Document
+# -------------------------------------------------------------------------
+
+
+@documents_router.post(
     "/upload",
     response_model=SuccessResponse[DocumentResponse],
     status_code=status.HTTP_202_ACCEPTED,
-    summary="Upload a personal knowledge document for async processing",
+    summary="Upload a new personal RAG document",
+)
+@knowledge_router.post(
+    "/upload",
+    response_model=SuccessResponse[DocumentResponse],
+    status_code=status.HTTP_202_ACCEPTED,
+    summary="Upload a new personal RAG document (legacy path)",
 )
 async def upload_document(
     background_tasks: BackgroundTasks,
@@ -35,34 +46,35 @@ async def upload_document(
     db: Annotated[AsyncSession, Depends(get_db_session)],
     file: Annotated[UploadFile, File(description="PDF, DOCX, TXT, or Markdown file")],
 ) -> SuccessResponse[DocumentResponse]:
-    """
-    Upload a document. The file is saved immediately and text extraction +
-    embedding is queued as a background task. Returns status=uploaded.
-    """
     doc = await KnowledgeService.upload_document(db, current_user.id, file)
-
-    # Queue background processing after the response is sent
     background_tasks.add_task(KnowledgeService.process_document_background, doc.id)
-
     return SuccessResponse(
         message="Document uploaded successfully. Processing queued.",
         data=DocumentResponse.model_validate(doc),
     )
 
 
-@router.get(
+# -------------------------------------------------------------------------
+# List Documents
+# -------------------------------------------------------------------------
+
+
+@documents_router.get(
+    "",
+    response_model=SuccessResponse[DocumentListResponse],
+    status_code=status.HTTP_200_OK,
+    summary="List all personal RAG documents",
+)
+@knowledge_router.get(
     "/documents",
     response_model=SuccessResponse[DocumentListResponse],
     status_code=status.HTTP_200_OK,
-    summary="List all documents owned by the current user",
+    summary="List all personal RAG documents (legacy path)",
 )
 async def list_documents(
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[AsyncSession, Depends(get_db_session)],
 ) -> SuccessResponse[DocumentListResponse]:
-    """
-    Returns all documents for the authenticated user ordered by upload date.
-    """
     docs = await KnowledgeService.list_documents(db, current_user.id)
     return SuccessResponse(
         message="Documents retrieved successfully.",
@@ -73,21 +85,57 @@ async def list_documents(
     )
 
 
-@router.get(
+# -------------------------------------------------------------------------
+# Get Document Details
+# -------------------------------------------------------------------------
+
+
+@documents_router.get(
+    "/{document_id}",
+    response_model=SuccessResponse[DocumentResponse],
+    status_code=status.HTTP_200_OK,
+    summary="Retrieve details of a specific document",
+)
+@knowledge_router.get(
+    "/{document_id}",
+    response_model=SuccessResponse[DocumentResponse],
+    status_code=status.HTTP_200_OK,
+    summary="Retrieve details of a specific document (legacy path)",
+)
+async def get_document(
+    document_id: uuid.UUID,
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[AsyncSession, Depends(get_db_session)],
+) -> SuccessResponse[DocumentResponse]:
+    doc = await KnowledgeService.get_document(db, document_id, current_user.id)
+    return SuccessResponse(
+        message="Document details retrieved.",
+        data=DocumentResponse.model_validate(doc),
+    )
+
+
+# -------------------------------------------------------------------------
+# Poll Document Status
+# -------------------------------------------------------------------------
+
+
+@documents_router.get(
     "/status/{document_id}",
     response_model=SuccessResponse[DocumentStatusResponse],
     status_code=status.HTTP_200_OK,
-    summary="Poll the processing status of a specific document",
+    summary="Get processing status of a document",
+)
+@knowledge_router.get(
+    "/status/{document_id}",
+    response_model=SuccessResponse[DocumentStatusResponse],
+    status_code=status.HTTP_200_OK,
+    summary="Get processing status of a document (legacy path)",
 )
 async def get_document_status(
     document_id: uuid.UUID,
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[AsyncSession, Depends(get_db_session)],
 ) -> SuccessResponse[DocumentStatusResponse]:
-    """
-    Returns the current processing status of a document owned by the user.
-    Poll this endpoint after upload to detect when processing reaches 'ready'.
-    """
     doc = await KnowledgeService.get_status(db, document_id, current_user.id)
     return SuccessResponse(
         message="Document status retrieved.",
@@ -95,23 +143,157 @@ async def get_document_status(
     )
 
 
-@router.delete(
+# -------------------------------------------------------------------------
+# Delete Document
+# -------------------------------------------------------------------------
+
+
+@documents_router.delete(
     "/{document_id}",
     response_model=SuccessResponse[MessageResponse],
     status_code=status.HTTP_200_OK,
-    summary="Delete a document and all associated vector embeddings",
+    summary="Delete a document and all its indexed chunks",
+)
+@knowledge_router.delete(
+    "/{document_id}",
+    response_model=SuccessResponse[MessageResponse],
+    status_code=status.HTTP_200_OK,
+    summary="Delete a document and all its indexed chunks (legacy path)",
 )
 async def delete_document(
     document_id: uuid.UUID,
     current_user: Annotated[User, Depends(get_current_user)],
     db: Annotated[AsyncSession, Depends(get_db_session)],
 ) -> SuccessResponse[MessageResponse]:
-    """
-    Permanently deletes a document, its stored file, and its FAISS vectors.
-    Only the document's owner may delete it.
-    """
     await KnowledgeService.delete_document(db, document_id, current_user.id)
     return SuccessResponse(
         message="Document deleted successfully.",
-        data=MessageResponse(success=True, message="Document and embeddings removed."),
+        data=MessageResponse(
+            success=True, message="Document and vector chunks removed."
+        ),
+    )
+
+
+# -------------------------------------------------------------------------
+# Force Process Document
+# -------------------------------------------------------------------------
+
+
+@documents_router.post(
+    "/process",
+    response_model=SuccessResponse[MessageResponse],
+    status_code=status.HTTP_202_ACCEPTED,
+    summary="Trigger manual background processing or reprocessing of a document",
+)
+@knowledge_router.post(
+    "/process",
+    response_model=SuccessResponse[MessageResponse],
+    status_code=status.HTTP_202_ACCEPTED,
+    summary="Trigger manual background processing or reprocessing of a document (legacy path)",
+)
+async def process_document(
+    payload: dict,
+    background_tasks: BackgroundTasks,
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[AsyncSession, Depends(get_db_session)],
+) -> SuccessResponse[MessageResponse]:
+    doc_id_str = payload.get("document_id")
+    if not doc_id_str:
+        from fastapi import HTTPException
+
+        raise HTTPException(status_code=400, detail="Missing document_id in payload.")
+
+    try:
+        doc_id = uuid.UUID(doc_id_str)
+    except ValueError as err:
+        from fastapi import HTTPException
+
+        raise HTTPException(
+            status_code=400, detail="Invalid UUID format for document_id."
+        ) from err
+
+    # Enforce ownership check
+    await KnowledgeService.get_document(db, doc_id, current_user.id)
+
+    # Queue background processor task
+    background_tasks.add_task(KnowledgeService.process_document_background, doc_id)
+    return SuccessResponse(
+        message="Manual document processing queued.",
+        data=MessageResponse(
+            success=True, message="Processing task started in background."
+        ),
+    )
+
+
+# -------------------------------------------------------------------------
+# Search Documents
+# -------------------------------------------------------------------------
+
+
+@documents_router.post(
+    "/search",
+    response_model=SuccessResponse[DocumentSearchResponse],
+    status_code=status.HTTP_200_OK,
+    summary="Perform vector-similarity hybrid search over document chunks",
+)
+@knowledge_router.post(
+    "/search",
+    response_model=SuccessResponse[DocumentSearchResponse],
+    status_code=status.HTTP_200_OK,
+    summary="Perform vector-similarity hybrid search over document chunks (legacy path)",
+)
+async def search_documents(
+    payload: DocumentSearchRequest,
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[AsyncSession, Depends(get_db_session)],
+) -> SuccessResponse[DocumentSearchResponse]:
+    search_results = await KnowledgeService.search_documents(
+        db=db,
+        user_id=current_user.id,
+        query=payload.query,
+        limit=payload.limit,
+        similarity_threshold=payload.similarity_threshold,
+        category=payload.category,
+        metadata_filter=payload.metadata_filter,
+    )
+    return SuccessResponse(
+        message="Document search complete.",
+        data=DocumentSearchResponse(results=search_results),
+    )
+
+
+# -------------------------------------------------------------------------
+# Reindex Documents
+# -------------------------------------------------------------------------
+
+
+@documents_router.post(
+    "/reindex",
+    response_model=SuccessResponse[MessageResponse],
+    status_code=status.HTTP_200_OK,
+    summary="Queue re-processing of all user documents",
+)
+@knowledge_router.post(
+    "/reindex",
+    response_model=SuccessResponse[MessageResponse],
+    status_code=status.HTTP_200_OK,
+    summary="Queue re-processing of all user documents (legacy path)",
+)
+async def reindex_documents(
+    background_tasks: BackgroundTasks,
+    current_user: Annotated[User, Depends(get_current_user)],
+    db: Annotated[AsyncSession, Depends(get_db_session)],
+) -> SuccessResponse[MessageResponse]:
+    reindexed_count = await KnowledgeService.reindex_user_documents(db, current_user.id)
+    # Queue processing tasks in background
+    docs = await KnowledgeService.list_documents(db, current_user.id)
+    for doc in docs:
+        background_tasks.add_task(KnowledgeService.process_document_background, doc.id)
+
+    return SuccessResponse(
+        message="All user documents queued for reindexing.",
+        data=MessageResponse(
+            success=True,
+            message=f"Reindexed {reindexed_count} documents in background.",
+        ),
     )

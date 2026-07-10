@@ -3,7 +3,9 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import (
+    JSON,
     BigInteger,
+    Boolean,
     DateTime,
     Enum,
     ForeignKey,
@@ -57,6 +59,13 @@ class Document(Base, UUIDMixin, TimestampMixin):
     processed_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
+    retry_count: Mapped[int] = mapped_column(
+        Integer, default=0, server_default="0", nullable=False
+    )
+    retries_exhausted: Mapped[bool] = mapped_column(
+        Boolean, default=False, server_default="false", nullable=False
+    )
+    metadata_json: Mapped[dict | None] = mapped_column(JSON, nullable=True)
 
     # Relationships (lazy to avoid circular import issues)
     user: Mapped["User"] = relationship(  # type: ignore[name-defined]  # noqa: F821
