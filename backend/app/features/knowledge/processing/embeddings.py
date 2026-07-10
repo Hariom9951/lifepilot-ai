@@ -2,6 +2,7 @@
 Embedding service abstraction wrapping sentence-transformers.
 Uses a lazy-loaded, thread-safe singleton to avoid repeated model loading.
 """
+
 import logging
 import threading
 from typing import Any

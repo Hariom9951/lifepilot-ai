@@ -26,22 +26,26 @@ const STATUS_CONFIG: Record<
 > = {
   uploaded: {
     label: "Uploaded",
-    color: "text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/30 border-sky-200/60 dark:border-sky-800/40",
+    color:
+      "text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/30 border-sky-200/60 dark:border-sky-800/40",
     icon: <Clock className="h-3 w-3" />,
   },
   processing: {
     label: "Processing",
-    color: "text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 border-amber-200/60 dark:border-amber-800/40",
+    color:
+      "text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 border-amber-200/60 dark:border-amber-800/40",
     icon: <Loader2 className="h-3 w-3 animate-spin" />,
   },
   ready: {
     label: "Ready",
-    color: "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200/60 dark:border-emerald-800/40",
+    color:
+      "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200/60 dark:border-emerald-800/40",
     icon: <CheckCircle2 className="h-3 w-3" />,
   },
   failed: {
     label: "Failed",
-    color: "text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/30 border-rose-200/60 dark:border-rose-800/40",
+    color:
+      "text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/30 border-rose-200/60 dark:border-rose-800/40",
     icon: <AlertTriangle className="h-3 w-3" />,
   },
 };
@@ -120,7 +124,10 @@ export default function DocumentCard({ document: doc, onDeleted }: DocumentCardP
           <span>{formatDate(doc.created_at)}</span>
         </div>
         {doc.status === "failed" && doc.error_message && (
-          <p className="mt-1 text-[11px] text-rose-500 dark:text-rose-400 truncate" title={doc.error_message}>
+          <p
+            className="mt-1 text-[11px] text-rose-500 dark:text-rose-400 truncate"
+            title={doc.error_message}
+          >
             {doc.error_message}
           </p>
         )}

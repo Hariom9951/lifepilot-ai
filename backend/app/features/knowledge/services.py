@@ -2,6 +2,7 @@
 KnowledgeService — orchestrates document upload, background processing,
 listing, status queries, and deletion.
 """
+
 import logging
 import uuid
 from pathlib import Path
@@ -47,7 +48,9 @@ def _get_upload_dir() -> Path:
     return upload_dir
 
 
-def _safe_storage_filename(original_filename: str, doc_id: uuid.UUID, mime_type: str) -> str:
+def _safe_storage_filename(
+    original_filename: str, doc_id: uuid.UUID, mime_type: str
+) -> str:
     """Generate a collision-safe storage filename from doc UUID."""
     ext = _MIME_TO_EXT.get(mime_type, ".bin")
     return f"{doc_id}{ext}"
@@ -142,7 +145,9 @@ class KnowledgeService:
                 # 1. Fetch document
                 doc = await DocumentRepository.get_by_id(db, doc_id)
                 if not doc:
-                    logger.error(f"Document {doc_id} not found during background processing.")
+                    logger.error(
+                        f"Document {doc_id} not found during background processing."
+                    )
                     return
 
                 # 2. Mark as PROCESSING
@@ -161,7 +166,9 @@ class KnowledgeService:
                 # 4. Extract text
                 raw_text = text_extractor.extract(file_path, doc.mime_type)
                 if not raw_text.strip():
-                    raise ValueError("Extracted text is empty — document may be corrupt.")
+                    raise ValueError(
+                        "Extracted text is empty — document may be corrupt."
+                    )
 
                 # 5. Chunk text
                 chunker = build_chunker_from_settings()
@@ -180,7 +187,9 @@ class KnowledgeService:
                 await DocumentRepository.mark_ready(db, doc_id, chunk_count=len(chunks))
                 await db.commit()
 
-                logger.info(f"Document {doc_id} processing complete ({len(chunks)} chunks).")
+                logger.info(
+                    f"Document {doc_id} processing complete ({len(chunks)} chunks)."
+                )
 
             except Exception as exc:
                 logger.exception(f"Document {doc_id} processing failed: {exc}")
@@ -193,9 +202,7 @@ class KnowledgeService:
                     )
 
     @staticmethod
-    async def list_documents(
-        db: AsyncSession, user_id: uuid.UUID
-    ) -> list[Document]:
+    async def list_documents(db: AsyncSession, user_id: uuid.UUID) -> list[Document]:
         """
         Return all documents owned by the requesting user.
 

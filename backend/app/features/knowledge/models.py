@@ -39,7 +39,9 @@ class Document(Base, UUIDMixin, TimestampMixin):
         Uuid, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
     )
     original_filename: Mapped[str] = mapped_column(String(255), nullable=False)
-    storage_filename: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
+    storage_filename: Mapped[str] = mapped_column(
+        String(255), nullable=False, unique=True
+    )
     mime_type: Mapped[str] = mapped_column(String(100), nullable=False)
     file_size: Mapped[int] = mapped_column(BigInteger, nullable=False)
     status: Mapped[DocumentStatus] = mapped_column(

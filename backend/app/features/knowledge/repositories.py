@@ -41,9 +41,7 @@ class DocumentRepository:
         return result.scalar_one_or_none()
 
     @staticmethod
-    async def list_by_user(
-        db: AsyncSession, user_id: uuid.UUID
-    ) -> list[Document]:
+    async def list_by_user(db: AsyncSession, user_id: uuid.UUID) -> list[Document]:
         """Return all documents for a user ordered by creation date descending."""
         stmt = (
             select(Document)
@@ -56,7 +54,11 @@ class DocumentRepository:
     @staticmethod
     async def count_by_user(db: AsyncSession, user_id: uuid.UUID) -> int:
         """Return total document count for a user."""
-        stmt = select(func.count()).select_from(Document).where(Document.user_id == user_id)
+        stmt = (
+            select(func.count())
+            .select_from(Document)
+            .where(Document.user_id == user_id)
+        )
         result = await db.execute(stmt)
         return result.scalar_one()
 
@@ -118,9 +120,7 @@ class DocumentRepository:
         await db.flush()
 
     @staticmethod
-    async def mark_ready(
-        db: AsyncSession, doc_id: uuid.UUID, chunk_count: int
-    ) -> None:
+    async def mark_ready(db: AsyncSession, doc_id: uuid.UUID, chunk_count: int) -> None:
         """Convenience method to set status to READY with chunk count."""
         stmt = (
             update(Document)

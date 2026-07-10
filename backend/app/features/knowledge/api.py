@@ -1,6 +1,7 @@
 """
 Knowledge API router — 4 secured endpoints for document management.
 """
+
 import uuid
 from typing import Annotated
 
@@ -41,9 +42,7 @@ async def upload_document(
     doc = await KnowledgeService.upload_document(db, current_user.id, file)
 
     # Queue background processing after the response is sent
-    background_tasks.add_task(
-        KnowledgeService.process_document_background, doc.id
-    )
+    background_tasks.add_task(KnowledgeService.process_document_background, doc.id)
 
     return SuccessResponse(
         message="Document uploaded successfully. Processing queued.",

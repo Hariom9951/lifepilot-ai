@@ -1,6 +1,7 @@
 """
 Configurable sliding-window text chunker for the RAG pipeline.
 """
+
 import logging
 
 logger = logging.getLogger("app.knowledge.chunker")

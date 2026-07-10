@@ -80,8 +80,7 @@ export default function DropZone({ onUploadSuccess }: DropZoneProps) {
         }, 2500);
       } catch (err: unknown) {
         setDropState("error");
-        const message =
-          err instanceof Error ? err.message : "Upload failed. Please try again.";
+        const message = err instanceof Error ? err.message : "Upload failed. Please try again.";
         setErrorMsg(message);
       }
     },
@@ -146,24 +145,20 @@ export default function DropZone({ onUploadSuccess }: DropZoneProps) {
       />
 
       {/* Icon */}
-      <div className={`flex h-14 w-14 items-center justify-center rounded-2xl transition-all duration-200 ${
-        dropState === "success"
-          ? "bg-emerald-100 dark:bg-emerald-900/30"
-          : dropState === "error"
-            ? "bg-rose-100 dark:bg-rose-900/30"
-            : dropState === "uploading"
-              ? "bg-indigo-100 dark:bg-indigo-900/30"
-              : "bg-indigo-50 dark:bg-indigo-950/30 group-hover:scale-110"
-      }`}>
-        {dropState === "uploading" && (
-          <Loader2 className="h-7 w-7 text-indigo-500 animate-spin" />
-        )}
-        {dropState === "success" && (
-          <CheckCircle2 className="h-7 w-7 text-emerald-500" />
-        )}
-        {dropState === "error" && (
-          <AlertCircle className="h-7 w-7 text-rose-500" />
-        )}
+      <div
+        className={`flex h-14 w-14 items-center justify-center rounded-2xl transition-all duration-200 ${
+          dropState === "success"
+            ? "bg-emerald-100 dark:bg-emerald-900/30"
+            : dropState === "error"
+              ? "bg-rose-100 dark:bg-rose-900/30"
+              : dropState === "uploading"
+                ? "bg-indigo-100 dark:bg-indigo-900/30"
+                : "bg-indigo-50 dark:bg-indigo-950/30 group-hover:scale-110"
+        }`}
+      >
+        {dropState === "uploading" && <Loader2 className="h-7 w-7 text-indigo-500 animate-spin" />}
+        {dropState === "success" && <CheckCircle2 className="h-7 w-7 text-emerald-500" />}
+        {dropState === "error" && <AlertCircle className="h-7 w-7 text-rose-500" />}
         {(dropState === "idle" || dropState === "hover") && (
           <Upload
             className={`h-7 w-7 transition-transform duration-200 ${
@@ -215,9 +210,7 @@ export default function DropZone({ onUploadSuccess }: DropZoneProps) {
           <p className="text-sm font-semibold text-rose-600 dark:text-rose-400">
             {errorMsg ?? "Upload failed"}
           </p>
-          <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">
-            Click to try again
-          </p>
+          <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">Click to try again</p>
         </div>
       )}
 

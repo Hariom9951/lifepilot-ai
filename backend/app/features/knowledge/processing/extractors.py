@@ -2,6 +2,7 @@
 Text extraction service supporting PDF, DOCX, TXT, and Markdown files.
 Follows the Single Responsibility Principle — one class per concern.
 """
+
 import logging
 from pathlib import Path
 

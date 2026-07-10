@@ -58,5 +58,3 @@ class SoftDeleteMixin:
     def restore(self) -> None:
         self.is_deleted = False
         self.deleted_at = None
-
-

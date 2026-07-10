@@ -3,7 +3,17 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Brain, BookOpen, Command, Menu, X, Activity, Settings, LogOut, LayoutDashboard } from "lucide-react";
+import {
+  Brain,
+  BookOpen,
+  Command,
+  Menu,
+  X,
+  Activity,
+  Settings,
+  LogOut,
+  LayoutDashboard,
+} from "lucide-react";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import { useAuthStore } from "@/store/authStore";
 import { apiClient } from "@/config/axios";

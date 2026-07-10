@@ -8,7 +8,7 @@
  * Phase 5 will add semantic search via FAISS RAG query.
  */
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Brain, Search, BookOpen, Sparkles } from "lucide-react";
 import { apiClient } from "@/config/axios";
 import { useToast } from "@/components/ui/toast";
@@ -19,34 +19,38 @@ import type { Document, DocumentListResponse } from "@/types/knowledge";
 export default function KnowledgePage() {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
+  const [pollTick, setPollTick] = useState(0);
   const { toast } = useToast();
 
-  // Poll processing docs every 5 s so status updates live
-  const fetchDocuments = useCallback(async () => {
-    try {
-      const res = await apiClient.get<{ data: DocumentListResponse }>("/knowledge/documents");
-      setDocuments(res.data.data.documents);
-    } catch {
-      toast("Could not load documents.", "error");
-    } finally {
-      setLoading(false);
-    }
-  }, [toast]);
-
+  // Fetch on mount and whenever pollTick increments
   useEffect(() => {
-    fetchDocuments();
-  }, [fetchDocuments]);
+    let cancelled = false;
+    async function load() {
+      try {
+        const res = await apiClient.get<{ data: DocumentListResponse }>("/knowledge/documents");
+        if (!cancelled) setDocuments(res.data.data.documents);
+      } catch {
+        if (!cancelled) toast("Could not load documents.", "error");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    void load();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pollTick]);
 
-  // Auto-poll while any document is processing
+  // Auto-poll every 5 s while any document is still processing
   useEffect(() => {
     const hasProcessing = documents.some(
       (d) => d.status === "uploaded" || d.status === "processing"
     );
     if (!hasProcessing) return;
-
-    const interval = setInterval(fetchDocuments, 5000);
+    const interval = setInterval(() => setPollTick((t) => t + 1), 5000);
     return () => clearInterval(interval);
-  }, [documents, fetchDocuments]);
+  }, [documents]);
 
   const handleUploadSuccess = (newDoc: Document) => {
     setDocuments((prev) => [newDoc, ...prev]);
@@ -133,11 +137,7 @@ export default function KnowledgePage() {
           >
             Your Documents
           </h2>
-          <DocumentList
-            documents={documents}
-            loading={loading}
-            onDeleted={handleDeleted}
-          />
+          <DocumentList documents={documents} loading={loading} onDeleted={handleDeleted} />
         </section>
       </div>
     </main>

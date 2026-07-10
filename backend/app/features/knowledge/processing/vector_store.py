@@ -6,6 +6,7 @@ Design:
 - FAISSVectorStore: Per-user FAISS flat-L2 index persisted to disk.
   Each document's chunks are stored with their doc_id for targeted deletion.
 """
+
 import json
 import logging
 import uuid
@@ -80,7 +81,9 @@ class FAISSVectorStore(VectorStoreBase):
     INDEX_FILENAME = "index.faiss"
     META_FILENAME = "metadata.json"
 
-    def __init__(self, base_dir: Path, user_id: uuid.UUID, embedding_dim: int = 384) -> None:
+    def __init__(
+        self, base_dir: Path, user_id: uuid.UUID, embedding_dim: int = 384
+    ) -> None:
         """
         Args:
             base_dir: Root storage directory for all FAISS indexes.
