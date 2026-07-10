@@ -73,7 +73,7 @@ class AnalyticsTask(Base, UUIDMixin, TimestampMixin):
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     status: Mapped[TaskStatus] = mapped_column(
-        Enum(TaskStatus),
+        Enum(TaskStatus, native_enum=True),
         default=TaskStatus.PENDING,
         server_default=TaskStatus.PENDING.value,
         nullable=False,
@@ -111,7 +111,7 @@ class AnalyticsHabit(Base, UUIDMixin, TimestampMixin):
     name: Mapped[str] = mapped_column(String(150), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     frequency: Mapped[HabitFrequency] = mapped_column(
-        Enum(HabitFrequency),
+        Enum(HabitFrequency, native_enum=True),
         default=HabitFrequency.DAILY,
         nullable=False,
     )

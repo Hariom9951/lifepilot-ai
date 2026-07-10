@@ -114,7 +114,7 @@ def upgrade() -> None:
         sa.Column("description", sa.Text(), nullable=True),
         sa.Column(
             "frequency",
-            sa.Enum("DAILY", "WEEKLY", name="habitfrequency"),
+            sa.Enum("daily", "weekly", name="habitfrequency"),
             nullable=False,
         ),
         sa.Column("completions", sa.JSON(), server_default="[]", nullable=False),
@@ -144,7 +144,7 @@ def upgrade() -> None:
         sa.Column("description", sa.Text(), nullable=True),
         sa.Column(
             "status",
-            sa.Enum("PENDING", "COMPLETED", "OVERDUE", "CANCELLED", name="taskstatus"),
+            sa.Enum("pending", "completed", "overdue", "cancelled", name="taskstatus"),
             server_default="pending",
             nullable=False,
         ),
