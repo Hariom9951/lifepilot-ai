@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 from app.core.config.settings import settings
 from app.core.database.mixins import Base
 from app.features.auth.models import RefreshToken, Role, User  # noqa: F401
+from app.features.embeddings.models import EmbeddingCache  # noqa: F401
 from app.features.knowledge.models import Document  # noqa: F401
 from app.features.memory.models import (  # noqa: F401
     ConversationMessage,

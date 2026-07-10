@@ -40,5 +40,9 @@ class Settings(BaseSettings):
     KNOWLEDGE_CHUNK_OVERLAP: int = 64
     KNOWLEDGE_MAX_FILE_SIZE_MB: int = 25
 
+    # Production Embedding Engine Configs
+    EMBEDDING_PROVIDER: str = "sentence-transformers/all-MiniLM-L6-v2"
+    EMBEDDING_CACHE_ENABLED: bool = True
+
 
 settings = Settings()
