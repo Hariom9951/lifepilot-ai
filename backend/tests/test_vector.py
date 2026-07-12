@@ -64,10 +64,13 @@ def auth_headers(test_user: User) -> dict[str, str]:
 
 @pytest.fixture(autouse=True)
 def mock_embedding_providers():
+    from app.features.embeddings.providers import set_active_provider
+    set_active_provider(None)
     with patch.object(settings, "EMBEDDING_PROVIDER", "mock"):
         # Force default settings to FAISS to avoid heavy chroma disk setups in fast unit tests
         with patch.object(settings, "VECTOR_PROVIDER", "faiss"):
             yield
+    set_active_provider(None)
 
 
 # =============================================================================
