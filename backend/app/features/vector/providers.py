@@ -413,12 +413,21 @@ class QdrantVectorStoreProvider(BaseVectorStoreProvider):
                 conditions.append(FieldCondition(key=k, match=MatchValue(value=v)))
             query_filter = Filter(must=conditions)
 
-        res = self.client.search(
-            collection_name=collection,
-            query_vector=query_vector,
-            query_filter=query_filter,
-            limit=limit,
-        )
+        if hasattr(self.client, "search"):
+            res = self.client.search(
+                collection_name=collection,
+                query_vector=query_vector,
+                query_filter=query_filter,
+                limit=limit,
+            )
+        else:
+            query_res = self.client.query_points(
+                collection_name=collection,
+                query=query_vector,
+                query_filter=query_filter,
+                limit=limit,
+            )
+            res = query_res.points
 
         return [
             {
@@ -451,17 +460,27 @@ class QdrantVectorStoreProvider(BaseVectorStoreProvider):
 # Factory Accessor
 # -----------------------------------------------------------------------------
 
+_vector_store_provider: BaseVectorStoreProvider | None = None
+
 
 def get_vector_store_provider() -> BaseVectorStoreProvider:
     """
     Instantiates the configured swappable vector storage client.
     """
-    provider_name = getattr(settings, "VECTOR_PROVIDER", "chroma").lower()
-    if provider_name == "faiss":
-        return FAISSVectorStoreProvider(
-            base_dir=Path(settings.KNOWLEDGE_VECTOR_DIR), dimension=384
-        )
-    elif provider_name == "qdrant":
-        return QdrantVectorStoreProvider(url=settings.QDRANT_URL, dimension=384)
-    else:
-        return ChromaVectorStoreProvider(persist_directory=settings.CHROMA_DB_PATH)
+    global _vector_store_provider
+    if _vector_store_provider is None:
+        provider_name = getattr(settings, "VECTOR_PROVIDER", "chroma").lower()
+        if provider_name == "faiss":
+            _vector_store_provider = FAISSVectorStoreProvider(
+                base_dir=Path(settings.KNOWLEDGE_VECTOR_DIR), dimension=384
+            )
+        elif provider_name == "qdrant":
+            _vector_store_provider = QdrantVectorStoreProvider(url=settings.QDRANT_URL, dimension=384)
+        else:
+            _vector_store_provider = ChromaVectorStoreProvider(persist_directory=settings.CHROMA_DB_PATH)
+    return _vector_store_provider
+
+
+def set_vector_store_provider(provider: BaseVectorStoreProvider | None) -> None:
+    global _vector_store_provider
+    _vector_store_provider = provider

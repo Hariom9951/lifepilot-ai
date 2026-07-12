@@ -65,13 +65,16 @@ def auth_headers(test_user: User) -> dict[str, str]:
 @pytest.fixture(autouse=True)
 def mock_embedding_providers():
     from app.features.embeddings.providers import set_active_provider
+    from app.features.vector.providers import set_vector_store_provider
 
     set_active_provider(None)
+    set_vector_store_provider(None)
     with patch.object(settings, "EMBEDDING_PROVIDER", "mock"):
         # Force default settings to FAISS to avoid heavy chroma disk setups in fast unit tests
         with patch.object(settings, "VECTOR_PROVIDER", "faiss"):
             yield
     set_active_provider(None)
+    set_vector_store_provider(None)
 
 
 # =============================================================================
@@ -80,17 +83,24 @@ def mock_embedding_providers():
 
 
 def test_vector_store_provider_factory():
+    from app.features.vector.providers import set_vector_store_provider
+
+    set_vector_store_provider(None)
     provider = get_vector_store_provider()
     assert isinstance(provider, FAISSVectorStoreProvider)
 
     with patch.object(settings, "VECTOR_PROVIDER", "chroma"):
         with patch("chromadb.PersistentClient"):
+            set_vector_store_provider(None)
             p_chroma = get_vector_store_provider()
             assert isinstance(p_chroma, ChromaVectorStoreProvider)
 
     with patch.object(settings, "VECTOR_PROVIDER", "qdrant"):
+        set_vector_store_provider(None)
         p_qdrant = get_vector_store_provider()
         assert isinstance(p_qdrant, QdrantVectorStoreProvider)
+
+    set_vector_store_provider(None)
 
 
 # =============================================================================
