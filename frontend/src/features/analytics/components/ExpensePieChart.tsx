@@ -43,11 +43,20 @@ const CustomTooltip = ({
   return null;
 };
 
-const renderLegend = (props: { payload?: Array<{ value: string; color: string }> }) => {
+interface LegendEntry {
+  value?: string;
+  color?: string;
+}
+
+interface RenderLegendProps {
+  payload?: readonly LegendEntry[];
+}
+
+const renderLegend = (props: RenderLegendProps) => {
   if (!props.payload) return null;
   return (
     <ul className="flex flex-wrap gap-x-4 gap-y-1.5 justify-center mt-2">
-      {props.payload.map((entry, i) => (
+      {props.payload.map((entry: LegendEntry, i: number) => (
         <li key={i} className="flex items-center gap-1.5">
           <span
             className="inline-block h-2 w-2 rounded-full shrink-0"
