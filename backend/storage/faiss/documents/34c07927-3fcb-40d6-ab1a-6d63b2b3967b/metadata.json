@@ -1,0 +1,32 @@
+[
+  {
+    "chunk_id": "70da9440-ebc9-466a-a4f9-8ad9c4ed0a52",
+    "metadata": {
+      "category": "business",
+      "text": "Profit margins increased by twenty percent this quarter.",
+      "source": "quarterly_report.pdf",
+      "document_id": "cf1812fb-358c-4457-b540-2849233e69a3",
+      "created_at": "2026-07-10T07:14:57.844055"
+    }
+  },
+  {
+    "chunk_id": "5cc40824-c763-4ef6-a05b-85edcf7cda1b",
+    "metadata": {
+      "category": "tech",
+      "text": "Our machine learning models use advanced transformer architectures.",
+      "source": "ml_guide.docx",
+      "document_id": "cf1812fb-358c-4457-b540-2849233e69a3",
+      "created_at": "2026-07-10T07:14:57.844060"
+    }
+  },
+  {
+    "chunk_id": "5400bd1c-578e-4b87-a71a-639a47fb7520",
+    "metadata": {
+      "category": "stories",
+      "text": "The quick brown fox jumps over the lazy dog.",
+      "source": "animal_stories.txt",
+      "document_id": "cf1812fb-358c-4457-b540-2849233e69a3",
+      "created_at": "2026-07-10T07:14:57.844061"
+    }
+  }
+]

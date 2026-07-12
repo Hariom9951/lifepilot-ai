@@ -1,0 +1,6 @@
+2026-07-10 09:30:27,623 - Request OPTIONS /api/v1/auth/refresh completed in 0.003646s [ID: unknown]
+2026-07-10 09:30:27,972 - Request POST /api/v1/auth/refresh completed in 0.035726s [ID: ea9c63c0-4171-4b41-922a-630313f7c93d]
+2026-07-10 12:59:44,817 - Request GET /health completed in 0.005254s [ID: 4f90327c-7e47-4ddd-b15e-d2e63e6e2bcd]
+2026-07-10 13:00:09,655 - Request GET / completed in 0.011379s [ID: 249664e3-0fd2-4695-9d47-56c9357fb4d7]
+2026-07-10 13:00:48,355 - Request OPTIONS /api/v1/auth/refresh completed in 0.012737s [ID: unknown]
+2026-07-10 13:00:48,708 - Request POST /api/v1/auth/refresh completed in 0.033925s [ID: 26d8ba50-a625-408b-b7f4-72f33670cade]

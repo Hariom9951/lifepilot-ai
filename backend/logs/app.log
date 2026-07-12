@@ -1,0 +1,2 @@
+2026-07-10 09:30:27,966 [ERROR] app.exceptions (handlers.py:18) - AppException [401]: Authentication refresh token is missing. | Errors: []
+2026-07-10 13:00:48,700 [ERROR] app.exceptions (handlers.py:18) - AppException [401]: Authentication refresh token is missing. | Errors: []

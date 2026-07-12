@@ -1,0 +1,22 @@
+[
+  {
+    "chunk_id": "07872a80-7e88-40ac-bb97-ec125f855578",
+    "metadata": {
+      "category": "business",
+      "text": "Profit margins increased by twenty percent this quarter.",
+      "source": "quarterly_report.pdf",
+      "document_id": "1d6ed7c6-402d-487c-a93e-2ff99cbd1225",
+      "created_at": "2026-07-10T07:11:14.636808"
+    }
+  },
+  {
+    "chunk_id": "cc5ad93b-5699-4ffa-8a86-0ba67733eebd",
+    "metadata": {
+      "category": "tech",
+      "text": "Our machine learning models use advanced transformer architectures.",
+      "source": "ml_guide.docx",
+      "document_id": "1d6ed7c6-402d-487c-a93e-2ff99cbd1225",
+      "created_at": "2026-07-10T07:11:14.636824"
+    }
+  }
+]
