@@ -32,19 +32,19 @@ from app.core.database.mixins import Base, TimestampMixin, UUIDMixin
 # ---------------------------------------------------------------------------
 
 
-class TaskStatus(str, enum.Enum):
+class TaskStatus(enum.StrEnum):
     PENDING = "pending"
     COMPLETED = "completed"
     OVERDUE = "overdue"
     CANCELLED = "cancelled"
 
 
-class HabitFrequency(str, enum.Enum):
+class HabitFrequency(enum.StrEnum):
     DAILY = "daily"
     WEEKLY = "weekly"
 
 
-class GoalStatus(str, enum.Enum):
+class GoalStatus(enum.StrEnum):
     ACTIVE = "active"
     COMPLETED = "completed"
     PAUSED = "paused"

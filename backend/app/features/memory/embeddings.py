@@ -1,5 +1,6 @@
 import hashlib
 import random
+import re
 from abc import ABC, abstractmethod
 
 
@@ -35,10 +36,6 @@ class MockEmbeddingProvider(EmbeddingProvider):
     def generate_embedding(self, text: str) -> list[float]:
         if not text:
             return [0.0] * self.dimension
-
-        import hashlib
-        import random
-        import re
 
         words = re.findall(r"\w+", text.lower())
         if not words:

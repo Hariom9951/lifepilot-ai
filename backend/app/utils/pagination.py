@@ -1,4 +1,4 @@
-from typing import Generic, TypeVar
+from typing import TypeVar
 
 from pydantic import BaseModel, Field
 
@@ -29,7 +29,7 @@ class PageMetadata(BaseModel):
     pages: int
 
 
-class PagedResponse(BaseModel, Generic[T]):
+class PagedResponse[T](BaseModel):
     """
     Paged list success API response template wrapper.
     """

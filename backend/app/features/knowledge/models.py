@@ -19,7 +19,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.core.database.mixins import Base, TimestampMixin, UUIDMixin
 
 
-class DocumentStatus(str, enum.Enum):
+class DocumentStatus(enum.StrEnum):
     """
     Lifecycle states for an uploaded knowledge document.
     """

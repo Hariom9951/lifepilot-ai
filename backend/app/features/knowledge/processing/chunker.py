@@ -1,12 +1,12 @@
 import logging
 import re
 from abc import ABC, abstractmethod
-from enum import Enum
+from enum import StrEnum
 
 logger = logging.getLogger("app.knowledge.chunker")
 
 
-class ChunkingStrategy(str, Enum):
+class ChunkingStrategy(StrEnum):
     FIXED = "fixed"
     RECURSIVE = "recursive"
     PARAGRAPH = "paragraph"
