@@ -475,9 +475,13 @@ def get_vector_store_provider() -> BaseVectorStoreProvider:
                 base_dir=Path(settings.KNOWLEDGE_VECTOR_DIR), dimension=384
             )
         elif provider_name == "qdrant":
-            _vector_store_provider = QdrantVectorStoreProvider(url=settings.QDRANT_URL, dimension=384)
+            _vector_store_provider = QdrantVectorStoreProvider(
+                url=settings.QDRANT_URL, dimension=384
+            )
         else:
-            _vector_store_provider = ChromaVectorStoreProvider(persist_directory=settings.CHROMA_DB_PATH)
+            _vector_store_provider = ChromaVectorStoreProvider(
+                persist_directory=settings.CHROMA_DB_PATH
+            )
     return _vector_store_provider
 
 
