@@ -16,7 +16,11 @@ router = APIRouter(prefix="/health", tags=["Health Diagnostics"])
 async def check_health(db: DbSession) -> SuccessResponse[HealthStatus]:
     """
     Performs full health checks on the application, database, and Redis cache.
-    Calculates operational latencies for each service.
+
+    Redis status values:
+    - ``"healthy"``  — Redis is configured and responding.
+    - ``"unhealthy"`` — Redis is configured but unreachable.
+    - ``"disabled"``  — REDIS_URL is not set; Redis is intentionally absent.
     """
     # 1. Check Database
     db_start = time.perf_counter()
@@ -29,23 +33,31 @@ async def check_health(db: DbSession) -> SuccessResponse[HealthStatus]:
         db_message = f"Database query failed: {str(e)}"
     db_time = (time.perf_counter() - db_start) * 1000
 
-    # 2. Check Redis
+    # 2. Check Redis — three possible outcomes
     redis_start = time.perf_counter()
-    redis_status = "healthy"
-    redis_message = "Redis server ping successful."
-    try:
-        redis_ok = await redis_manager.ping()
-        if not redis_ok:
+    if not redis_manager.is_configured:
+        # Redis is intentionally absent; not a failure condition
+        redis_status = "disabled"
+        redis_message = "REDIS_URL is not set. Redis caching is disabled."
+        redis_time = 0.0
+    else:
+        redis_status = "healthy"
+        redis_message = "Redis server ping successful."
+        try:
+            redis_ok = await redis_manager.ping()
+            if not redis_ok:
+                redis_status = "unhealthy"
+                redis_message = "Redis did not return a positive ping response."
+        except Exception as e:
             redis_status = "unhealthy"
-            redis_message = "Redis did not return a positive ping response."
-    except Exception as e:
-        redis_status = "unhealthy"
-        redis_message = f"Redis ping failed: {str(e)}"
-    redis_time = (time.perf_counter() - redis_start) * 1000
+            redis_message = f"Redis ping failed: {str(e)}"
+        redis_time = (time.perf_counter() - redis_start) * 1000
 
-    # Overall application status
+    # 3. Overall application status
+    # "disabled" Redis is not a degradation — only a genuinely unreachable
+    # configured Redis degrades the application status.
     app_status = "healthy"
-    if db_status != "healthy" or redis_status != "healthy":
+    if db_status != "healthy" or redis_status == "unhealthy":
         app_status = "degraded"
 
     health_data = HealthStatus(
@@ -58,7 +70,7 @@ async def check_health(db: DbSession) -> SuccessResponse[HealthStatus]:
         redis=ServiceStatus(
             status=redis_status,
             message=redis_message,
-            response_time_ms=round(redis_time, 2),
+            response_time_ms=round(redis_time, 2) if redis_time else None,
         ),
         version=settings.APP_VERSION,
         environment=settings.ENVIRONMENT,

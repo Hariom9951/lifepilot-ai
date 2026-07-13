@@ -133,7 +133,12 @@ async def ping() -> dict:
 @app.get("/health")
 async def health_check(response: Response) -> dict:
     """
-    Production Health API. Verifies database and redis readiness.
+    Production Health API. Verifies database and Redis readiness.
+
+    Redis field values:
+    - ``"ok"``       — Redis configured and responding.
+    - ``"error"``    — Redis configured but unreachable.
+    - ``"disabled"`` — REDIS_URL not set; Redis intentionally absent.
     """
     db_ok = "ok"
     try:
@@ -142,16 +147,20 @@ async def health_check(response: Response) -> dict:
     except Exception:
         db_ok = "error"
 
-    redis_ok = "ok"
-    try:
-        ping_res = await redis_manager.ping()
-        if not ping_res:
+    if not redis_manager.is_configured:
+        redis_ok = "disabled"
+    else:
+        redis_ok = "ok"
+        try:
+            ping_res = await redis_manager.ping()
+            if not ping_res:
+                redis_ok = "error"
+        except Exception:
             redis_ok = "error"
-    except Exception:
-        redis_ok = "error"
 
+    # Only a genuine Redis failure (not "disabled") degrades health
     status_str = "healthy"
-    if db_ok != "ok" or redis_ok != "ok":
+    if db_ok != "ok" or redis_ok == "error":
         status_str = "unhealthy"
         response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
 
@@ -166,7 +175,12 @@ async def health_check(response: Response) -> dict:
 @app.get("/ready")
 async def readiness_check(response: Response) -> dict:
     """
-    Production Readiness API. Verifies all databases, cache, embedding, and vector providers.
+    Production Readiness API. Verifies databases, cache, embedding, and vector providers.
+
+    Redis field values:
+    - ``"ok"``       — Redis configured and responding.
+    - ``"error"``    — Redis configured but unreachable.
+    - ``"disabled"`` — REDIS_URL not set; caching gracefully skipped.
     """
     db_ok = "ok"
     try:
@@ -175,13 +189,16 @@ async def readiness_check(response: Response) -> dict:
     except Exception:
         db_ok = "error"
 
-    redis_ok = "ok"
-    try:
-        ping_res = await redis_manager.ping()
-        if not ping_res:
+    if not redis_manager.is_configured:
+        redis_ok = "disabled"
+    else:
+        redis_ok = "ok"
+        try:
+            ping_res = await redis_manager.ping()
+            if not ping_res:
+                redis_ok = "error"
+        except Exception:
             redis_ok = "error"
-    except Exception:
-        redis_ok = "error"
 
     emb_ok = "ok"
     try:
@@ -199,8 +216,9 @@ async def readiness_check(response: Response) -> dict:
     except Exception:
         vec_ok = "error"
 
+    # "disabled" Redis is acceptable for readiness — only a genuine error fails
     status_str = "ready"
-    if any(x != "ok" for x in [db_ok, redis_ok, emb_ok, vec_ok]):
+    if any(x == "error" for x in [db_ok, redis_ok, emb_ok, vec_ok]):
         status_str = "not_ready"
         response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
 

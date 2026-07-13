@@ -33,7 +33,10 @@ class Settings(BaseSettings):
     DATABASE_URL: str = (
         "postgresql+asyncpg://lifepilot_user:lifepilot_secure_password_replace_me@localhost:5432/lifepilot_db"
     )
-    REDIS_URL: str = "redis://:redis_secure_password_replace_me@localhost:6379/0"
+    # REDIS_URL is optional. When absent (e.g. Railway without a Redis add-on),
+    # the application starts normally and Redis-backed features are silently
+    # skipped. Set this env var to enable Redis caching and session storage.
+    REDIS_URL: str | None = None
 
     # Knowledge / RAG Configuration
     KNOWLEDGE_UPLOAD_DIR: str = "./storage/uploads"
@@ -107,7 +110,11 @@ class ProductionSettings(Settings):
 
     @field_validator("REDIS_URL")
     @classmethod
-    def validate_production_redis(cls, v: str) -> str:
+    def validate_production_redis(cls, v: str | None) -> str | None:
+        # Redis is optional in production (e.g. Railway without a Redis add-on).
+        # Only validate the URL format when one is actually provided.
+        if v is None:
+            return None
         if (
             "localhost" in v
             or "127.0.0.1" in v

@@ -80,32 +80,37 @@ class AnalyticsService:
     ) -> DashboardResponse:
         """
         Compute and return the full analytics dashboard payload.
-        Result is cached in Redis for DASHBOARD_CACHE_TTL seconds.
+        Result is cached in Redis for DASHBOARD_CACHE_TTL seconds when
+        Redis is configured; otherwise computed fresh on every call.
         """
         cache_key = f"analytics:dashboard:{user_id}"
 
-        # Try Redis cache first
-        try:
-            redis = redis_manager.get_client()
-            cached = await redis.get(cache_key)
-            if cached:
-                data = json.loads(cached)
-                return DashboardResponse(**data)
-        except Exception as exc:
-            logger.warning("Redis cache read failed — computing fresh: %s", exc)
+        # Try Redis cache first (skipped when Redis is not configured)
+        if redis_manager.is_configured:
+            try:
+                redis = redis_manager.get_client()
+                if redis is not None:
+                    cached = await redis.get(cache_key)
+                    if cached:
+                        data = json.loads(cached)
+                        return DashboardResponse(**data)
+            except Exception as exc:
+                logger.warning("Redis cache read failed — computing fresh: %s", exc)
 
         result = await cls._compute_dashboard(db, user_id)
 
-        # Write to cache
-        try:
-            redis = redis_manager.get_client()
-            await redis.setex(
-                cache_key,
-                DASHBOARD_CACHE_TTL,
-                result.model_dump_json(),
-            )
-        except Exception as exc:
-            logger.warning("Redis cache write failed: %s", exc)
+        # Write to cache (skipped when Redis is not configured)
+        if redis_manager.is_configured:
+            try:
+                redis = redis_manager.get_client()
+                if redis is not None:
+                    await redis.setex(
+                        cache_key,
+                        DASHBOARD_CACHE_TTL,
+                        result.model_dump_json(),
+                    )
+            except Exception as exc:
+                logger.warning("Redis cache write failed: %s", exc)
 
         return result
 

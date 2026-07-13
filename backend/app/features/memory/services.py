@@ -512,9 +512,14 @@ class MemoryService:
     ) -> None:
         """
         Store session cache metadata inside Redis.
+        Silently skipped when Redis is not configured.
         """
+        if not redis_manager.is_configured:
+            return
         try:
             client = redis_manager.get_client()
+            if client is None:
+                return
             key = cls._session_cache_key(session_id)
             await client.set(key, json.dumps(data), ex=ttl_seconds)
         except Exception as e:
@@ -524,8 +529,16 @@ class MemoryService:
     async def get_cached_session_data(
         cls, session_id: uuid.UUID
     ) -> dict[str, Any] | None:
+        """
+        Retrieve session cache metadata from Redis.
+        Returns None (cache miss) when Redis is not configured.
+        """
+        if not redis_manager.is_configured:
+            return None
         try:
             client = redis_manager.get_client()
+            if client is None:
+                return None
             key = cls._session_cache_key(session_id)
             cached = await client.get(key)
             if cached:
@@ -705,12 +718,14 @@ class MemoryService:
         await db.commit()
         await db.refresh(summary)
 
-        # Cache summary to Redis
-        try:
-            client = redis_manager.get_client()
-            summary_key = f"session:{session_id}:summary"
-            await client.set(summary_key, summary_text, ex=7200)  # 2 hours cache
-        except Exception as e:
-            logger.error(f"Error caching session summary: {e}")
+        # Cache summary to Redis (silently skipped when Redis is not configured)
+        if redis_manager.is_configured:
+            try:
+                client = redis_manager.get_client()
+                if client is not None:
+                    summary_key = f"session:{session_id}:summary"
+                    await client.set(summary_key, summary_text, ex=7200)  # 2 hours cache
+            except Exception as e:
+                logger.error(f"Error caching session summary: {e}")
 
         return summary
