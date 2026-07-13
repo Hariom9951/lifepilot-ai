@@ -120,6 +120,16 @@ async def root_health() -> dict:
     }
 
 
+@app.get("/ping")
+async def ping() -> dict:
+    """
+    Pure liveness probe — always returns HTTP 200 as long as the process is running.
+    Used by container orchestrators and CI to confirm the server has started,
+    independently of any external dependency (database, Redis, etc.).
+    """
+    return {"status": "ok"}
+
+
 @app.get("/health")
 async def health_check(response: Response) -> dict:
     """
