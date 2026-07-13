@@ -24,8 +24,7 @@ ENV PATH="$POETRY_HOME/bin:$PATH"
 
 COPY pyproject.toml poetry.lock ./
 
-RUN --mount=type=cache,target=/root/.cache/pip \
-    poetry install --only main --no-root
+RUN poetry install --only main --no-root
 
 # Stage 2: Production runner
 FROM python:3.12-slim AS runner
