@@ -724,7 +724,9 @@ class MemoryService:
                 client = redis_manager.get_client()
                 if client is not None:
                     summary_key = f"session:{session_id}:summary"
-                    await client.set(summary_key, summary_text, ex=7200)  # 2 hours cache
+                    await client.set(
+                        summary_key, summary_text, ex=7200
+                    )  # 2 hours cache
             except Exception as e:
                 logger.error(f"Error caching session summary: {e}")
 
